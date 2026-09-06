@@ -1,0 +1,6 @@
+{
+  "name": "AcuityVoice",
+  "description": "Autonomous Spoken English & Candidate Screening Voice Agent for BPOs, contact centers, and enterprise ATS evaluations.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
