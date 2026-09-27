@@ -18,6 +18,7 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 - **Never give the customer agent tools.** Tool turns caused silent replies (0 audio) in testing. The evaluator uses exactly one tool, triggered by `reply.create`.
 - Demo mode (`server/demoRep.ts`) pipes audio between two Voice Agent sessions through a real-time pacer with silence padding. Unpaced bursts break turn detection. A shared `Floor` makes it half-duplex: an agent keeps the floor until its reply has played, and early replies wait or get flushed on interruption. This cut cross-talk from 3.5 s to 0 s per 75 s call.
 - AssemblyAI has no standalone TTS. The demo voiceover uses a Voice Agent `greeting` (`demo/narrate.ts`).
+- TTS has no emotion/style/speed control, and `[angry]` tags and SSML are read aloud (tested 2026-09-27). Emotion comes only from the text: short bursts, `!`/`?`, CAPS on stressed words. That's why `customerPrompt.ts` writes the anger into the words. Most expressive voices on angry text: vera, jean, alba, jane. Flattest: paul, michael, george.
 - Valid English voices: alba, eve, george, jane, jean, mary, michael, anna, charles, paul, vera. `james` and `ivy` do not exist.
 - Leave `turn_detection` at its default; setting `min_silence` disables adaptive pacing. Use `input.transcription_mode` instead.
 - Pre-recorded requests use `speech_models: ["universal-3-5-pro", "universal-2"]` with a raw-key `authorization` header.
