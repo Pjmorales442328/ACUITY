@@ -16,7 +16,7 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 
 - Voice Agent: `wss://agents.assemblyai.com/v1/ws`, `Authorization: Bearer <key>`. Send `session.update` on open.
 - **Never give the customer agent tools.** Tool turns caused silent replies (0 audio) in testing. The evaluator uses exactly one tool, triggered by `reply.create`.
-- Demo mode (`server/demoRep.ts`) pipes audio between two Voice Agent sessions through a real-time pacer with silence padding. Unpaced bursts break turn detection.
+- Demo mode (`server/demoRep.ts`) pipes audio between two Voice Agent sessions through a real-time pacer with silence padding. Unpaced bursts break turn detection. A shared `Floor` makes it half-duplex: an agent keeps the floor until its reply has played, and early replies wait or get flushed on interruption. This cut cross-talk from 3.5 s to 0 s per 75 s call.
 - AssemblyAI has no standalone TTS. The demo voiceover uses a Voice Agent `greeting` (`demo/narrate.ts`).
 - Valid English voices: alba, eve, george, jane, jean, mary, michael, anna, charles, paul, vera. `james` and `ivy` do not exist.
 - Leave `turn_detection` at its default; setting `min_silence` disables adaptive pacing. Use `input.transcription_mode` instead.
@@ -27,5 +27,6 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 ## Conventions
 
 - Readiness is calculated in code (`readinessFromScores`), never taken from the model.
+- Script steps (`Scenario.script`) count as DONE or PARTIAL only with a verified quote; otherwise MISSED. Adherence is computed in code.
 - Findings must pass `locateQuote` (a verbatim match against the transcript) or they are discarded.
 - Mic audio is streamed continuously at 24 kHz. The echo gate sends zeros instead of dropping frames.

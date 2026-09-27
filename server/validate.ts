@@ -19,7 +19,8 @@ export function parseScenario(raw: any): Scenario | null {
     keyterms: Array.isArray(raw?.keyterms)
       ? raw.keyterms.map((k: unknown) => str(k, 50)).filter(Boolean).slice(0, 50)
       : [],
-    voice: VOICES.includes(raw?.voice) ? raw.voice : 'anna'
+    voice: VOICES.includes(raw?.voice) ? raw.voice : 'anna',
+    script: Array.isArray(raw?.script) ? raw.script.map((k: unknown) => str(k, 300)).filter(Boolean).slice(0, 20) : []
   };
   return s.id && s.title && s.customerName && s.persona && s.greeting ? s : null;
 }

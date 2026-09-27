@@ -25,6 +25,7 @@ export interface Scenario {
   greeting: string;
   keyterms: string[];
   voice: VoiceId;
+  script: string[]; // the company's call script: steps the rep must cover, in order (empty = no script)
 }
 
 export interface CandidateProfile {
@@ -61,6 +62,15 @@ export interface Finding {
 
 export type DimensionScores = Record<Dimension, number>;
 
+export type StepStatus = 'DONE' | 'PARTIAL' | 'MISSED';
+
+export interface ScriptStep {
+  step: string;
+  status: StepStatus;
+  quote: string | null;
+  atMs: number | null;
+}
+
 export interface Scorecard extends CandidateProfile {
   id: string;
   scenarioId: string;
@@ -75,6 +85,8 @@ export interface Scorecard extends CandidateProfile {
   summary: string;
   findings: Finding[];
   rejectedFindings: number;
+  scriptSteps: ScriptStep[];
+  scriptAdherence: number | null; // 0-100, computed in code from scriptSteps
   metrics: SpeechMetrics;
   transcript: TranscriptLine[];
 }

@@ -12,7 +12,16 @@ export const DEFAULT_SCENARIOS: Scenario[] = [
     persona: 'You are calling ApexPay card support. There is a forty five dollar charge from "CloudStream Pro" on your card that you never authorized. Your rent is due tomorrow morning and you cannot afford to lose that money. You want the charge reversed and the merchant blocked. If asked to verify, your card ends in 4417.',
     greeting: "Hi, I just saw a forty five dollar charge from CloudStream Pro on my ApexPay card and I never signed up for that. My rent is due tomorrow. I need this reversed.",
     keyterms: ['ApexPay', 'CloudStream Pro', 'chargeback', 'provisional credit', 'dispute'],
-    voice: 'jane'
+    voice: 'jane',
+    script: [
+      'Thank the caller for calling ApexPay and give your name',
+      'Verify identity: full name and the last four digits of the card',
+      'Acknowledge the specific worry (the rent due tomorrow)',
+      'Explain the dispute: provisional credit posts within two business days',
+      'Block the merchant and offer a replacement card',
+      'Give a dispute reference number',
+      'Ask if there is anything else and close by thanking them for calling ApexPay'
+    ]
   },
   {
     id: 'ecommerce_delivery',
@@ -24,7 +33,8 @@ export const DEFAULT_SCENARIOS: Scenario[] = [
     persona: 'You ordered a smartwatch from ShopNest for your daughter\'s birthday tomorrow. Tracking says it was delivered two hours ago but it is not on your porch and your neighbours have not seen it. Order number is SN 58213. You want it found or replaced before the party.',
     greeting: "Hello, my order says delivered two hours ago but there's nothing on my porch, and it's my daughter's birthday gift for tomorrow.",
     keyterms: ['ShopNest', 'smartwatch', 'tracking number', 'replacement', 'courier'],
-    voice: 'michael'
+    voice: 'michael',
+    script: []
   },
   {
     id: 'telecom_outage',
@@ -36,7 +46,8 @@ export const DEFAULT_SCENARIOS: Scenario[] = [
     persona: 'Your FiberLink internet went down fifteen minutes before a board meeting you are presenting at. The router shows a red LOS light. You are on a weak phone hotspot. You will follow troubleshooting steps if they are clear and fast. You want a working connection or a backup option now.',
     greeting: "My FiberLink internet just died and the router has a red light. I'm presenting to our board in fifteen minutes. I need this fixed now.",
     keyterms: ['FiberLink', 'LOS light', 'ONT', 'router', 'hotspot', 'technician'],
-    voice: 'george'
+    voice: 'george',
+    script: []
   },
   {
     id: 'hotel_overbooking',
@@ -48,7 +59,8 @@ export const DEFAULT_SCENARIOS: Scenario[] = [
     persona: 'You booked the Ocean Penthouse at the Azure Bay Resort six months ago for your honeymoon. You just arrived at 11:30 PM after a fourteen hour flight and the desk says another guest is in your room. You are exhausted and upset. You want a genuine apology and a comparable room tonight.',
     greeting: "We just flew fourteen hours for our honeymoon and your front desk says our penthouse is occupied. This is unacceptable.",
     keyterms: ['Azure Bay', 'Ocean Penthouse', 'upgrade', 'suite', 'reservation'],
-    voice: 'vera'
+    voice: 'vera',
+    script: []
   },
   {
     id: 'it_no_signal',
@@ -60,6 +72,7 @@ export const DEFAULT_SCENARIOS: Scenario[] = [
     persona: 'You just set up a new desktop PC. Fans and lights work but the monitor says "No Signal". The HDMI cable is plugged into the port near the USB ports at the top of the back panel (the motherboard), not the graphics card lower down. You are not technical: describe what you see simply and do exactly what you are told. When the cable is moved to the lower horizontal slot, the Windows logo appears.',
     greeting: "Hi, I just set up my new computer. The fans are running but the monitor just says No Signal.",
     keyterms: ['HDMI', 'graphics card', 'motherboard', 'No Signal', 'DisplayPort'],
-    voice: 'alba'
+    voice: 'alba',
+    script: []
   }
 ];

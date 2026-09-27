@@ -14,10 +14,10 @@ interface CandidateHistoryViewProps {
 const csvCell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 
 function exportCsv(candidates: Scorecard[]) {
-  const header = ['Name', 'Email', 'Role', 'Scenario', 'Date', 'Readiness', 'CEFR', 'WPM', 'Fillers per 100 words', 'Summary'];
+  const header = ['Name', 'Email', 'Role', 'Scenario', 'Date', 'Readiness', 'CEFR', 'Script followed %', 'WPM', 'Fillers per 100 words', 'Summary'];
   const rows = candidates.map(c => [
     c.candidateName, c.candidateEmail, c.targetRole, c.scenarioTitle, c.createdAt,
-    READINESS[c.readiness].label, c.cefr ?? '', c.metrics.wordsPerMinute, c.metrics.fillersPer100Words, c.summary
+    READINESS[c.readiness].label, c.cefr ?? '', c.scriptAdherence ?? '', c.metrics.wordsPerMinute, c.metrics.fillersPer100Words, c.summary
   ]);
   const csv = [header, ...rows].map(r => r.map(csvCell).join(',')).join('\n');
   const a = document.createElement('a');

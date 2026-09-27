@@ -1,6 +1,7 @@
-// Self-check for speech metrics; run with `npm test`.
+// Self-check for speech metrics and script adherence; run with `npm test`.
 import assert from 'node:assert/strict';
 import { computeSpeechMetrics, locateQuote, segmentWords, type Word } from './speechMetrics';
+import { scriptAdherence } from './assessment';
 
 const w = (text: string, start: number, end: number, confidence = 0.99): Word => ({ text, start, end, confidence });
 
@@ -34,4 +35,8 @@ assert.equal(segmentWords(words, [2250]).length, 3, 'customer turn at 2.25s spli
 assert.equal(locateQuote(words, 'you need to wait, like, 7 days.'), 2215, 'punctuation-insensitive match');
 assert.equal(locateQuote(words, 'That is the policy'), 11000);
 assert.equal(locateQuote(words, 'That was the policy'), null, 'paraphrase rejected');
+// Script adherence: partial steps count half.
+const step = (status: 'DONE' | 'PARTIAL' | 'MISSED') => ({ step: 's', status, quote: null, atMs: null });
+assert.equal(scriptAdherence([]), null);
+assert.equal(scriptAdherence([step('DONE'), step('PARTIAL'), step('MISSED'), step('MISSED')]), 38);
 console.log('speechMetrics: all checks passed');

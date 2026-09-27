@@ -1,5 +1,7 @@
 // Plays streamed 24 kHz PCM16 audio from the Voice Agent gaplessly, with an instant flush for barge-in.
 export const SAMPLE_RATE = 24000;
+// Small lead when a reply starts, so audio arriving in real-time chunks plays without gaps.
+const JITTER_S = 0.1;
 
 export class PcmPlayer {
   readonly analyser: AnalyserNode;
@@ -25,7 +27,8 @@ export class PcmPlayer {
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(this.analyser);
-    const startAt = Math.max(this.ctx.currentTime, this.nextTime);
+    const now = this.ctx.currentTime;
+    const startAt = this.nextTime > now ? this.nextTime : now + JITTER_S;
     source.start(startAt);
     this.nextTime = startAt + buffer.duration;
     this.sources.add(source);

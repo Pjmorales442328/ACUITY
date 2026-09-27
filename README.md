@@ -11,7 +11,9 @@ A candidate takes a live phone call with an upset customer played by the **Assem
 3. **Judge (Voice Agent API).** A short evaluator session receives the transcript and metrics. `reply.create` asks it to call `submit_assessment`, and the tool arguments become the scorecard: five rubric dimensions scored 1–5, a CEFR level, the customer outcome and findings.
 4. **Verify.** Findings are kept only if their quote appears word for word in the transcript. Readiness is calculated from the scores in code. If the candidate says fewer than 25 words, the result is "Not enough speech".
 
-**Demo mode.** "Watch AI demo call" puts a second Voice Agent on the line as an AI trainee rep. The server pipes each agent's audio into the other in real time, so you can see the full pipeline without a microphone. The rep is scored exactly like a human candidate.
+**Your own call script.** In Scenario Studio, a company writes its own customer and pastes its rep script, one required step per line. Candidates see the script during the call. The report adds a step-by-step checklist (done, partial or missed), and each step needs a verified quote to count. Custom scenarios are saved to `data/scenarios.json`.
+
+**Demo mode.** "Watch AI demo call" puts a second Voice Agent on the line as an AI trainee rep. The server pipes each agent's audio into the other in real time, with half-duplex turn-taking: an agent holds the floor until its reply has finished playing, and a reply that arrives early is held back, so you can see the full pipeline without a microphone. The rep is scored exactly like a human candidate.
 
 Readiness is reported as *Ready*, *Ready with coaching* or *Needs training*. It is a signal to support human review, not an automated hiring decision.
 
@@ -47,7 +49,7 @@ server/
   evaluatorAgent.ts        Voice Agent evaluator returning the scorecard via tool call
   assessment.ts            Pipeline: transcribe -> metrics -> evaluate -> verify
   validate.ts              Sanitizes scenario/profile data from the browser
-  candidateStore.ts        Saves scorecards to data/candidates.json
+  store.ts                 Saves scorecards and custom scenarios to data/*.json
 src/
   App.tsx                  Tabs, scenario library, candidate history, scorecard modal
   features/screening/      Live screening page

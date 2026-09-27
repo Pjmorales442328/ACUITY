@@ -4,7 +4,8 @@ import express from 'express';
 import http from 'http';
 import path from 'path';
 import { WebSocketServer } from 'ws';
-import { candidateStore } from './server/candidateStore';
+import { candidateStore, scenarioStore } from './server/store';
+import { parseScenario } from './server/validate';
 import { handleCallSocket } from './server/callHandler';
 
 dotenv.config();
@@ -24,6 +25,20 @@ app.get('/api/candidates', (_req, res) => {
 });
 app.delete('/api/candidates/:id', (req, res) => {
   candidateStore.remove(req.params.id);
+  res.json({ ok: true });
+});
+// Custom scenarios authored in Scenario Studio (built-in ones ship with the client).
+app.get('/api/scenarios', (_req, res) => {
+  res.json(scenarioStore.list());
+});
+app.post('/api/scenarios', (req, res) => {
+  const scenario = parseScenario(req.body);
+  if (!scenario || !scenario.id.startsWith('custom_')) return res.status(400).json({ error: 'Invalid scenario' });
+  scenarioStore.add(scenario);
+  res.json(scenario);
+});
+app.delete('/api/scenarios/:id', (req, res) => {
+  scenarioStore.remove(req.params.id);
   res.json({ ok: true });
 });
 

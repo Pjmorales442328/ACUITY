@@ -14,7 +14,23 @@ export interface RawEvaluation {
   customer_outcome: 'RESOLVED_AND_CALMED' | 'PARTIALLY_DE_ESCALATED' | 'UNRESOLVED_ESCALATED';
   summary: string;
   findings: { dimension: string; impact: 'POSITIVE' | 'NEGATIVE'; quote: string; coaching: string }[];
+  script_steps?: { step_number: number; status: 'DONE' | 'PARTIAL' | 'MISSED'; quote: string }[];
 }
+
+// Only sent when the scenario has a company call script.
+const SCRIPT_STEPS_PROP = {
+  type: 'array',
+  description: 'One entry per numbered SCRIPT step, in order.',
+  items: {
+    type: 'object',
+    properties: {
+      step_number: { type: 'integer' },
+      status: { type: 'string', enum: ['DONE', 'PARTIAL', 'MISSED'], description: 'DONE = fully covered, PARTIAL = attempted or incomplete, MISSED = not covered.' },
+      quote: { type: 'string', description: 'For DONE or PARTIAL: the CANDIDATE words, copied exactly, that cover the step. Empty for MISSED.' }
+    },
+    required: ['step_number', 'status', 'quote']
+  }
+};
 
 const SUBMIT_TOOL = {
   type: 'function',
@@ -66,7 +82,13 @@ Readiness: READY if every dimension is 4+; NEEDS_TRAINING if any dimension is 2 
 Use the objective speech metrics for fluency evidence. Filler words in the transcript are real (the transcript keeps disfluencies).
 Every finding's quote must be copied exactly from a CANDIDATE line.`;
 
-export function evaluateCall(apiKey: string, context: string): Promise<RawEvaluation> {
+function submitTool(withScript: boolean) {
+  if (!withScript) return SUBMIT_TOOL;
+  const p = SUBMIT_TOOL.parameters;
+  return { ...SUBMIT_TOOL, parameters: { ...p, properties: { ...p.properties, script_steps: SCRIPT_STEPS_PROP }, required: [...p.required, 'script_steps'] } };
+}
+
+export function evaluateCall(apiKey: string, context: string, withScript: boolean): Promise<RawEvaluation> {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(VOICE_AGENT_URL, { headers: { Authorization: `Bearer ${apiKey}` } });
     const finish = (fn: () => void) => {
@@ -80,7 +102,7 @@ export function evaluateCall(apiKey: string, context: string): Promise<RawEvalua
 
     ws.on('open', () => ws.send(JSON.stringify({
       type: 'session.update',
-      session: { system_prompt: `${RUBRIC}\n\n${context}`, tools: [SUBMIT_TOOL] }
+      session: { system_prompt: `${RUBRIC}\n\n${context}`, tools: [submitTool(withScript)] }
     })));
     ws.on('message', raw => {
       const m = JSON.parse(raw.toString());

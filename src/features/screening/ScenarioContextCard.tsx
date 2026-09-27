@@ -21,6 +21,14 @@ export const ScenarioContextCard: React.FC<{ scenario: Scenario }> = ({ scenario
       <p className="text-xs text-slate-600 mt-1 leading-relaxed">{scenario.description}</p>
       <p className="text-[11px] text-slate-500 mt-1">Caller: <b>{scenario.customerName}</b> · voice {scenario.voice}</p>
     </div>
+    {scenario.script.length > 0 && (
+      <div>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Your call script</span>
+        <ol className="list-decimal list-inside space-y-1 text-xs text-slate-700">
+          {scenario.script.map((step, i) => <li key={i}>{step}</li>)}
+        </ol>
+      </div>
+    )}
     <div>
       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Scored on</span>
       <ul className="space-y-1">

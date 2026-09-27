@@ -8,6 +8,7 @@ import { ScorecardModal } from './components/scorecard/ScorecardModal';
 import { DEFAULT_SCENARIOS } from './data/scenarios';
 import { ScreeningPage } from './features/screening/ScreeningPage';
 import { deleteCandidate, fetchCandidates } from './services/candidateService';
+import { fetchCustomScenarios, saveScenario } from './services/scenarioService';
 import type { ActiveTab, Scenario, Scorecard } from './types';
 
 export function App() {
@@ -21,6 +22,7 @@ export function App() {
 
   useEffect(() => {
     fetchCandidates().then(setCandidates).catch(err => console.error(err));
+    fetchCustomScenarios().then(custom => setScenarios([...custom, ...DEFAULT_SCENARIOS])).catch(err => console.error(err));
   }, []);
 
   const handleScorecard = (sc: Scorecard) => {
@@ -72,8 +74,12 @@ export function App() {
               setBriefOpen(true);
             }}
             onAddCustomScenario={sc => {
-              setScenarios(prev => [sc, ...prev]);
-              setSelectedScenarioId(sc.id);
+              saveScenario(sc)
+                .then(saved => {
+                  setScenarios(prev => [saved, ...prev]);
+                  setSelectedScenarioId(saved.id);
+                })
+                .catch(err => alert(err.message));
             }}
           />
         )}

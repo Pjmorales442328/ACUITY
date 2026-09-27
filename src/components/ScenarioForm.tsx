@@ -10,7 +10,7 @@ const label = 'text-[11px] font-semibold text-slate-600 block mb-1';
 export const ScenarioForm: React.FC<{ onCreate: (s: Scenario) => void; onCancel: () => void }> = ({ onCreate, onCancel }) => {
   const [f, setF] = useState({
     title: '', category: 'Custom' as ScenarioCategory, difficulty: 'Intermediate',
-    customerName: '', voice: 'jane' as VoiceId, persona: '', greeting: '', keyterms: ''
+    customerName: '', voice: 'jane' as VoiceId, persona: '', greeting: '', keyterms: '', script: ''
   });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setF(prev => ({ ...prev, [k]: e.target.value }));
@@ -27,7 +27,9 @@ export const ScenarioForm: React.FC<{ onCreate: (s: Scenario) => void; onCancel:
       persona: f.persona.trim(),
       greeting: f.greeting.trim(),
       keyterms: f.keyterms.split(',').map(k => k.trim()).filter(Boolean),
-      voice: f.voice
+      voice: f.voice,
+      // Accepts pasted numbered or bulleted scripts.
+      script: f.script.split('\n').map(l => l.replace(/^\s*(\d+[.)]|[-*•])\s*/, '').trim()).filter(Boolean)
     });
   };
 
@@ -54,6 +56,11 @@ export const ScenarioForm: React.FC<{ onCreate: (s: Scenario) => void; onCancel:
       <div>
         <label className={label}>Opening line (spoken word for word when the call connects)</label>
         <input required maxLength={400} value={f.greeting} onChange={set('greeting')} className={input} />
+      </div>
+      <div>
+        <label className={label}>Your call script (optional, one required step per line). Candidates are checked against every step.</label>
+        <textarea rows={5} value={f.script} onChange={set('script')} className={input}
+          placeholder={'Greet with the company name and your name\nVerify the account holder\nAcknowledge the concern\nGive a reference number\nClose with the company name'} />
       </div>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="px-3 py-1.5 text-xs text-slate-600 cursor-pointer">Cancel</button>

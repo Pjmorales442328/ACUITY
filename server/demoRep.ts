@@ -7,21 +7,43 @@ const VOICE_AGENT_URL = 'wss://agents.assemblyai.com/v1/ws';
 const BYTES_PER_MS = 48; // 24 kHz PCM16 mono
 const TICK_MS = 40;
 
+// Half-duplex turn-taking: one voice on the line at a time. A speaker keeps the floor until its whole reply has played.
+class Floor {
+  holder: RealtimeFeed | null = null;
+}
+
 // Streams queued PCM to a sink in real time, padding with silence, so each agent hears the other as a live caller.
+// Queued speech is held back while the other side has the floor, so the agents never talk over each other.
 class RealtimeFeed {
   private queue: Buffer[] = [];
   private sentBytes = 0;
   private startedAt = Date.now();
+  private replying = false;
   private timer = setInterval(() => this.tick(), TICK_MS);
 
-  constructor(private sink: (pcm: Buffer) => void) {}
+  constructor(
+    private floor: Floor,
+    private sink: (pcm: Buffer) => void,
+    private onVoice: (pcm: Buffer) => void // only the speech actually put on the line, for the browser
+  ) {}
 
   push(pcm: Buffer) {
     this.queue.push(pcm);
   }
 
+  replyStarted() {
+    this.replying = true;
+  }
+
+  replyDone() {
+    this.replying = false;
+  }
+
+  // The speaker was interrupted: drop what it hasn't said yet and give up the floor.
   flush() {
     this.queue = [];
+    this.replying = false;
+    if (this.floor.holder === this) this.floor.holder = null;
   }
 
   stop() {
@@ -33,7 +55,8 @@ class RealtimeFeed {
     if (due <= 0) return;
     const out = Buffer.alloc(due);
     let filled = 0;
-    while (filled < due && this.queue.length) {
+    if (this.queue.length && !this.floor.holder) this.floor.holder = this;
+    while (this.floor.holder === this && filled < due && this.queue.length) {
       const head = this.queue[0];
       const n = Math.min(head.length, due - filled);
       head.copy(out, filled, 0, n);
@@ -43,6 +66,8 @@ class RealtimeFeed {
     }
     this.sentBytes += due;
     this.sink(out);
+    if (filled) this.onVoice(out.subarray(0, filled));
+    if (this.floor.holder === this && !this.replying && !this.queue.length) this.floor.holder = null;
   }
 }
 
@@ -56,6 +81,7 @@ You are warm and you genuinely want to help, but you are still learning:
 - You tend to promise a fix without giving an exact time or reference number, unless the caller pushes.
 - You apologize sincerely and you do take ownership once the caller is upset.
 Make up plausible details (reference numbers, timelines) when the caller asks. When the problem is handled, close the call politely.
+${s.script.length ? `\nYOUR COMPANY'S CALL SCRIPT. Follow it in order, in your own words, but as a new hire you forget one of the steps:\n${s.script.map((step, i) => `${i + 1}. ${step}`).join('\n')}\n` : ''}
 
 Never mention being an AI, a demo, or a test. Plain spoken sentences only, no lists or symbols.`;
 }
@@ -65,12 +91,19 @@ export class DemoRep {
   private toCustomer: RealtimeFeed; // rep voice -> customer agent input (the "mic")
   private toRep: RealtimeFeed; // customer voice -> rep agent input
 
-  constructor(apiKey: string, scenario: Scenario, customer: CustomerAgentSession, send: (e: Record<string, unknown>) => void) {
-    this.toCustomer = new RealtimeFeed(pcm => customer.onMicAudio(pcm));
+  constructor(
+    apiKey: string,
+    scenario: Scenario,
+    customer: CustomerAgentSession,
+    send: (e: Record<string, unknown>) => void,
+    sendCustomerAudio: (pcm: Buffer) => void
+  ) {
+    const floor = new Floor();
+    this.toCustomer = new RealtimeFeed(floor, pcm => customer.onMicAudio(pcm), pcm => send({ type: 'rep_audio', data: pcm.toString('base64') }));
     this.aai = new WebSocket(VOICE_AGENT_URL, { headers: { Authorization: `Bearer ${apiKey}` } });
-    this.toRep = new RealtimeFeed(pcm => {
+    this.toRep = new RealtimeFeed(floor, pcm => {
       if (this.aai.readyState === WebSocket.OPEN) this.aai.send(JSON.stringify({ type: 'input.audio', audio: pcm.toString('base64') }));
-    });
+    }, sendCustomerAudio);
 
     this.aai.on('open', () => this.aai.send(JSON.stringify({
       type: 'session.update',
@@ -88,11 +121,13 @@ export class DemoRep {
         return;
       }
       if (m.type === 'reply.audio') {
-        const pcm = Buffer.from(m.data, 'base64');
-        this.toCustomer.push(pcm);
-        send({ type: 'rep_audio', data: m.data });
+        this.toCustomer.push(Buffer.from(m.data, 'base64'));
+      } else if (m.type === 'reply.started') {
+        this.toCustomer.replyStarted();
+      } else if (m.type === 'reply.done') {
+        this.toCustomer.replyDone();
       } else if (m.type === 'input.speech.started') {
-        // The customer cut in: drop rep audio that hasn't "reached" the customer yet.
+        // The rep heard the customer keep talking: drop the rep reply that hasn't been played yet.
         this.toCustomer.flush();
         send({ type: 'rep_interrupted' });
       } else if (m.type === 'error' || m.type === 'session.error') {
@@ -108,7 +143,15 @@ export class DemoRep {
     this.toRep.push(pcm);
   }
 
-  // The rep started talking over the customer: stop feeding the customer's queued words to the rep.
+  customerReplyStarted() {
+    this.toRep.replyStarted();
+  }
+
+  customerReplyDone() {
+    this.toRep.replyDone();
+  }
+
+  // The customer heard the rep keep talking: drop the customer reply that hasn't been played yet.
   customerInterrupted() {
     this.toRep.flush();
   }

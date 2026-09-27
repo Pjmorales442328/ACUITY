@@ -5,6 +5,7 @@ import type { Scorecard } from '../../types';
 import { CallTranscript } from './CallTranscript';
 import { EvidenceList } from './EvidenceList';
 import { ReadinessHeader } from './ReadinessHeader';
+import { ScriptChecklist } from './ScriptChecklist';
 import { SpeechMetricsGrid } from './SpeechMetricsGrid';
 
 type Tab = 'REPORT' | 'TRANSCRIPT';
@@ -60,6 +61,7 @@ export const ScorecardModal: React.FC<{ scorecard: Scorecard; onClose: () => voi
           {tab === 'REPORT' ? (
             <>
               <ReadinessHeader sc={sc} />
+              <ScriptChecklist steps={sc.scriptSteps || []} adherence={sc.scriptAdherence ?? null} onJump={jumpTo} />
               <SpeechMetricsGrid m={sc.metrics} />
               <EvidenceList findings={sc.findings} rejected={sc.rejectedFindings} onJump={jumpTo} />
             </>

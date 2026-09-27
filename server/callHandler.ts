@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import WebSocket from 'ws';
 import type { CandidateProfile, Scenario, Scorecard } from '../src/types';
 import { assessCall } from './assessment';
-import { candidateStore } from './candidateStore';
+import { candidateStore } from './store';
 import { CustomerAgentSession } from './customerAgent';
 import { DemoRep } from './demoRep';
 import { parseProfile, parseScenario } from './validate';
@@ -20,12 +20,15 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
 
   const send = (event: Record<string, unknown>) => {
     if (event.type === 'user_speech_started') demoRep?.customerInterrupted();
+    if (event.type === 'agent_reply_started') demoRep?.customerReplyStarted();
+    if (event.type === 'agent_reply_done') demoRep?.customerReplyDone();
     if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(event));
   };
-  const sendAudio = (pcm: Buffer) => {
-    demoRep?.hearCustomer(pcm);
+  const sendToBrowser = (pcm: Buffer) => {
     if (client.readyState === WebSocket.OPEN) client.send(pcm, { binary: true });
   };
+  // In demo mode the customer's voice goes through the turn-taking feed first, so the browser hears what the rep hears.
+  const sendAudio = (pcm: Buffer) => (demoRep ? demoRep.hearCustomer(pcm) : sendToBrowser(pcm));
   const stopDemoRep = () => {
     demoRep?.stop();
     demoRep = null;
@@ -69,7 +72,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
       if (!scenario) return send({ type: 'error', message: 'Scenario is missing required fields' });
       session = new CustomerAgentSession(apiKey, scenario, send, sendAudio);
       session.start();
-      if (msg.demo === true) demoRep = new DemoRep(apiKey, scenario, session, send);
+      if (msg.demo === true) demoRep = new DemoRep(apiKey, scenario, session, send, sendToBrowser);
       limitTimer = setTimeout(() => {
         send({ type: 'time_limit' });
         endCall();
