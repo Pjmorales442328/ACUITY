@@ -1,0 +1,16 @@
+# Render blueprint: one Node web service (Express + WebSocket gateway + built SPA).
+services:
+  - type: web
+    name: acuityvoice
+    runtime: node
+    plan: free # free instances sleep after 15 idle minutes; use starter so judges never hit a cold start
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: MAX_LIVE_CALLS
+        value: "3"

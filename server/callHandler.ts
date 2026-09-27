@@ -10,6 +10,9 @@ import { parseProfile, parseScenario } from './validate';
 
 // Hard cap per call to protect API credits.
 const MAX_CALL_MS = 180_000;
+// Caps simultaneous calls so a public URL can't drain the free-tier key.
+const MAX_LIVE_CALLS = Number(process.env.MAX_LIVE_CALLS) || 3;
+let liveCalls = 0;
 
 export function handleCallSocket(client: WebSocket, apiKey: string | undefined) {
   let session: CustomerAgentSession | null = null;
@@ -17,6 +20,11 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
   let scenario: Scenario | null = null;
   let profile: CandidateProfile | null = null;
   let limitTimer: NodeJS.Timeout | null = null;
+  let holdsSlot = false;
+  const releaseSlot = () => {
+    if (holdsSlot) liveCalls--;
+    holdsSlot = false;
+  };
 
   const send = (event: Record<string, unknown>) => {
     if (event.type === 'user_speech_started') demoRep?.customerInterrupted();
@@ -38,6 +46,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
     if (!session || !scenario || !profile || !apiKey) return;
     if (limitTimer) clearTimeout(limitTimer);
     stopDemoRep();
+    releaseSlot();
     const recording = session.stop();
     session = null;
     send({ type: 'analysis_started' });
@@ -70,6 +79,9 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
       scenario = parseScenario(msg.scenario);
       profile = parseProfile(msg.profile);
       if (!scenario) return send({ type: 'error', message: 'Scenario is missing required fields' });
+      if (liveCalls >= MAX_LIVE_CALLS) return send({ type: 'error', message: 'All practice lines are busy. Try again in a couple of minutes.' });
+      liveCalls++;
+      holdsSlot = true;
       session = new CustomerAgentSession(apiKey, scenario, send, sendAudio);
       session.start();
       if (msg.demo === true) demoRep = new DemoRep(apiKey, scenario, session, send, sendToBrowser);
@@ -84,6 +96,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
 
   client.on('close', () => {
     if (limitTimer) clearTimeout(limitTimer);
+    releaseSlot();
     stopDemoRep();
     session?.stop();
     session = null;

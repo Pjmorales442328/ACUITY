@@ -25,7 +25,7 @@ cp .env.example .env     # set ASSEMBLYAI_API_KEY
 npm run dev              # http://localhost:3000
 ```
 
-Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 3 minutes to protect API credits.
+Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 3 minutes, and at `MAX_LIVE_CALLS` (default 3) at once, to protect API credits. A fresh install shows one sample report (`server/sampleCandidates.json`) until the first real call is saved.
 
 | Command | What it does |
 |---|---|
@@ -34,6 +34,10 @@ Use headphones during calls so the customer's voice doesn't leak into the microp
 | `npm start` | Run the production build |
 | `npm run lint` | Type-check with `tsc --noEmit` |
 | `npm test` | Speech-metrics self-check |
+
+### Deploy
+
+The app needs a host that keeps WebSockets open (not serverless). `render.yaml` is a Render blueprint: New → Blueprint → pick the repo, then set `ASSEMBLYAI_API_KEY`. Free instances sleep after 15 idle minutes; switch to `starter` while judging. Saved reports live on local disk and reset on redeploy.
 
 ## Folder structure
 

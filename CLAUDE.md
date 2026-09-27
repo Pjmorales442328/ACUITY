@@ -31,3 +31,4 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 - Script steps (`Scenario.script`) count as DONE or PARTIAL only with a verified quote; otherwise MISSED. Adherence is computed in code.
 - Findings must pass `locateQuote` (a verbatim match against the transcript) or they are discarded.
 - Mic audio is streamed continuously at 24 kHz. The echo gate sends zeros instead of dropping frames.
+- Public-deploy guards live in `server/callHandler.ts`: a 3-minute cap per call, plus `MAX_LIVE_CALLS` concurrent calls. `render.yaml` is the deploy blueprint.

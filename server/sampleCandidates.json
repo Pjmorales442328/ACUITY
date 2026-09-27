@@ -1,0 +1,189 @@
+[
+  {
+    "id": "af2510ed-db2e-4d4a-8e97-9499cb8646f2",
+    "createdAt": "2026-09-27T11:09:05.010Z",
+    "candidateName": "Sam Rivera (sample call)",
+    "candidateEmail": "",
+    "targetRole": "Customer Service Representative",
+    "scenarioId": "fintech_dispute",
+    "scenarioTitle": "Card Dispute: Unauthorized Charge",
+    "durationSeconds": 103,
+    "metrics": {
+      "wordCount": 134,
+      "speakingSeconds": 34.9,
+      "wordsPerMinute": 231,
+      "fillerCount": 2,
+      "fillersPer100Words": 1.5,
+      "hesitationPauses": 2,
+      "avgWordConfidence": 0.99,
+      "unclearWords": []
+    },
+    "transcript": [
+      {
+        "id": "c0",
+        "speaker": "Customer",
+        "text": "Yeah, hi. There's a forty five dollar charge on my ApexPay card from CloudStream Pro. I NEVER signed up for that! And my rent is due TOMORROW. I need it reversed. Today!",
+        "atMs": 1178
+      },
+      {
+        "id": "a0",
+        "speaker": "Candidate",
+        "text": "Thank you for calling. Um, I am so sorry about that, Jordan. Can you please tell me your full name and the last 4 digits of your card so I can help?",
+        "atMs": 13664
+      },
+      {
+        "id": "c1",
+        "speaker": "Customer",
+        "text": "Don't thank",
+        "atMs": 15631
+      },
+      {
+        "id": "c2",
+        "speaker": "Customer",
+        "text": "Jordan Reynolds! The card ends in 4 4 1 7. Just fix it!",
+        "atMs": 23138
+      },
+      {
+        "id": "a1",
+        "speaker": "Candidate",
+        "text": "So, I understand how stressful this is with rent due tomorrow. I will get this dispute started for you right away.",
+        "atMs": 30449
+      },
+      {
+        "id": "c3",
+        "speaker": "Customer",
+        "text": "\"Starting\" it isn't enough! I need that money back in my account NOW. When exactly will it be reversed?",
+        "atMs": 37835
+      },
+      {
+        "id": "a2",
+        "speaker": "Candidate",
+        "text": "I am so sorry, Jordan. You should see a provisional credit in your account within 2 business days.",
+        "atMs": 47249
+      },
+      {
+        "id": "c4",
+        "speaker": "Customer",
+        "text": "Two business days?! Are you serious? My rent is due TOMORROW! I can't wait two days!",
+        "atMs": 53939
+      },
+      {
+        "id": "a3",
+        "speaker": "Candidate",
+        "text": "I m am so sorry, I really am. I will take",
+        "atMs": 62997
+      },
+      {
+        "id": "c5",
+        "speaker": "Customer",
+        "text": "Stop with the apologies! They don't fix anything! Tell me EXACTLY what you're going to do to get it done today!",
+        "atMs": 65433
+      },
+      {
+        "id": "a4",
+        "speaker": "Candidate",
+        "text": "ownership of this and see what I can do to speed things up for you.",
+        "atMs": 65469
+      },
+      {
+        "id": "a5",
+        "speaker": "Candidate",
+        "text": "I am so sorry, Jordan. I will block CloudStream Pro from your card right now and send you a new card today.",
+        "atMs": 80032
+      },
+      {
+        "id": "c6",
+        "speaker": "Customer",
+        "text": "Wait. You JUST said you'd fix the credit! Blocking them is one thing, but what about my money? When is the credit arriving?",
+        "atMs": 86536
+      },
+      {
+        "id": "a6",
+        "speaker": "Candidate",
+        "text": "Um, I'll make sure the credit is processed immediately. Your dispute reference number is 829433.",
+        "atMs": 96835
+      }
+    ],
+    "readiness": "READY_WITH_COACHING",
+    "cefr": "B2",
+    "cefrRationale": "The candidate communicates effectively but shows significant struggles with pacing and managing emotional intensity.",
+    "dimensionScores": {
+      "EMPATHY": 5,
+      "OWNERSHIP": 3,
+      "ACCURACY": 3,
+      "CLARITY": 3,
+      "LANGUAGE": 4
+    },
+    "customerOutcome": "UNRESOLVED_ESCALATED",
+    "summary": "The candidate successfully followed the technical requirements of the script and showed strong empathy by acknowledging the rent concern. However, the candidate's extremely fast speaking pace and tendency to overpromise on immediate processing led to a failed de-escalation.",
+    "findings": [
+      {
+        "dimension": "ACCURACY",
+        "impact": "NEGATIVE",
+        "quote": "Um, I'll make sure the credit is processed immediately.",
+        "coaching": "Be careful not to overpromise on timelines that contradict the established policy, such as saying you will process it immediately when the policy is two days.",
+        "atMs": 96835
+      },
+      {
+        "dimension": "CLARITY",
+        "impact": "NEGATIVE",
+        "quote": "I am so sorry, Jordan. You should see a provisional credit in your account within 2 business days.",
+        "coaching": "Slow down your speaking rate; 231 words per minute is much too fast for a stressful customer interaction.",
+        "atMs": 47249
+      },
+      {
+        "dimension": "CLARITY",
+        "impact": "POSITIVE",
+        "quote": "I will block CloudStream Pro from your card right now and send you a new card today.",
+        "coaching": "Ensure you provide a clear, structured path forward rather than jumping between different solutions like blocking a merchant and sending a card.",
+        "atMs": 81573
+      }
+    ],
+    "rejectedFindings": 1,
+    "scriptSteps": [
+      {
+        "step": "Thank the caller for calling ApexPay and give your name",
+        "status": "PARTIAL",
+        "quote": "Thank you for calling. Um, I am so sorry about that, Jordan.",
+        "atMs": 13664
+      },
+      {
+        "step": "Verify identity: full name and the last four digits of the card",
+        "status": "DONE",
+        "quote": "Can you please tell me your full name and the last 4 digits of your card so I can help?",
+        "atMs": 17517
+      },
+      {
+        "step": "Acknowledge the specific worry (the rent due tomorrow)",
+        "status": "DONE",
+        "quote": "So, I understand how stressful this is with rent due tomorrow.",
+        "atMs": 30449
+      },
+      {
+        "step": "Explain the dispute: provisional credit posts within two business days",
+        "status": "DONE",
+        "quote": "You should see a provisional credit in your account within 2 business days.",
+        "atMs": 49455
+      },
+      {
+        "step": "Block the merchant and offer a replacement card",
+        "status": "DONE",
+        "quote": "I will block CloudStream Pro from your card right now and send you a new card today.",
+        "atMs": 81573
+      },
+      {
+        "step": "Give a dispute reference number",
+        "status": "DONE",
+        "quote": "Your dispute reference number is 829433.",
+        "atMs": 100307
+      },
+      {
+        "step": "Ask if there is anything else and close by thanking them for calling ApexPay",
+        "status": "MISSED",
+        "quote": null,
+        "atMs": null
+      }
+    ],
+    "scriptAdherence": 79
+  }
+]

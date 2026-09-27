@@ -2,10 +2,12 @@
 import fs from 'fs';
 import path from 'path';
 import type { Scenario, Scorecard } from '../src/types';
+import sampleCandidates from './sampleCandidates.json';
 
-function jsonStore<T extends { id: string }>(name: string) {
+// seed: shown on a fresh install until the first save, so a new visitor has a report to open.
+function jsonStore<T extends { id: string }>(name: string, seed: T[] = []) {
   const file = path.join(process.cwd(), 'data', `${name}.json`);
-  let items: T[] = [];
+  let items: T[] = seed;
   try {
     items = JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (err: any) {
@@ -34,5 +36,5 @@ function jsonStore<T extends { id: string }>(name: string) {
   };
 }
 
-export const candidateStore = jsonStore<Scorecard>('candidates');
+export const candidateStore = jsonStore<Scorecard>('candidates', sampleCandidates as Scorecard[]);
 export const scenarioStore = jsonStore<Scenario>('scenarios');

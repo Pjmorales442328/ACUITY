@@ -78,8 +78,15 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
       case 'agent_closed':
       case 'error':
         setError(e.message || `Voice Agent closed (${e.code}) ${e.reason || ''}`);
-        if (e.type === 'assessment_error') setPhase('error');
-        return;
+        // Errors before the call is live (busy, missing key) end the attempt instead of leaving it "connecting".
+        return setPhase(p => {
+          if (e.type !== 'assessment_error' && p !== 'connecting') return p;
+          if (p === 'connecting') {
+            socket.current?.close();
+            releaseAudio();
+          }
+          return 'error';
+        });
     }
   };
 
