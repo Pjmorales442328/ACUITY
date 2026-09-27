@@ -28,6 +28,7 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 ## Conventions
 
 - Readiness is calculated in code (`readinessFromScores`), never taken from the model.
+- Uploaded scripts become a playbook via `callAgentTool` (the only LLM path on the free tier; LLM Gateway is locked). Levels carry `level`, `critical`, `policies`. Pass/fail bars are code (`server/criteria.ts`, thresholds in `src/data/bars.ts`), never the model. Customer temperament follows `level` in `customerPrompt.ts`.
 - Script steps (`Scenario.script`) count as DONE or PARTIAL only with a verified quote; otherwise MISSED. Adherence is computed in code.
 - Findings must pass `locateQuote` (a verbatim match against the transcript) or they are discarded.
 - Mic audio is streamed continuously at 24 kHz. The echo gate sends zeros instead of dropping frames.

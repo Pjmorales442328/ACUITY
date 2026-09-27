@@ -73,13 +73,15 @@ export function App() {
               setActiveTab('SCREENING');
               setBriefOpen(true);
             }}
-            onAddCustomScenario={sc => {
-              saveScenario(sc)
-                .then(saved => {
-                  setScenarios(prev => [saved, ...prev]);
-                  setSelectedScenarioId(saved.id);
-                })
-                .catch(err => alert(err.message));
+            onAddScenarios={async list => {
+              try {
+                // The store prepends, so save in reverse to keep level 1 first after a reload.
+                for (const sc of [...list].reverse()) await saveScenario(sc);
+                setScenarios(prev => [...list, ...prev]);
+                setSelectedScenarioId(list[0].id);
+              } catch (err: any) {
+                alert(err.message);
+              }
             }}
           />
         )}

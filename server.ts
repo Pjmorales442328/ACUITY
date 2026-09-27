@@ -7,6 +7,8 @@ import { WebSocketServer } from 'ws';
 import { candidateStore, scenarioStore } from './server/store';
 import { parseScenario } from './server/validate';
 import { handleCallSocket } from './server/callHandler';
+import { analyzeScript } from './server/scriptAnalyzer';
+import { extractScriptText } from './server/scriptText';
 
 dotenv.config();
 
@@ -40,6 +42,18 @@ app.post('/api/scenarios', (req, res) => {
 app.delete('/api/scenarios/:id', (req, res) => {
   scenarioStore.remove(req.params.id);
   res.json({ ok: true });
+});
+
+// Upload a call script file; returns a playbook with three practice levels for review (nothing is saved yet).
+app.post('/api/scripts/analyze', express.raw({ type: '*/*', limit: '5mb' }), async (req, res) => {
+  if (!apiKey) return res.status(503).json({ error: 'ASSEMBLYAI_API_KEY is not configured on the server' });
+  try {
+    const text = await extractScriptText(req.body, decodeURIComponent(String(req.headers['x-file-name'] || '')));
+    res.json(await analyzeScript(apiKey, text));
+  } catch (err: any) {
+    console.error('[scripts] analyze failed', err);
+    res.status(400).json({ error: err?.message || 'Could not analyze that script' });
+  }
 });
 
 const wss = new WebSocketServer({ server, path: '/ws/call' });

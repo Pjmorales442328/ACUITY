@@ -26,6 +26,30 @@ export interface Scenario {
   keyterms: string[];
   voice: VoiceId;
   script: string[]; // the company's call script: steps the rep must cover, in order (empty = no script)
+  critical?: number[]; // 1-based script steps that fail the call when missed (verification, legal disclosures)
+  policies?: string[]; // facts from the script the rep must state correctly (timeframes, fees, limits)
+  level?: PracticeLevel; // set on scenarios generated from an uploaded script
+  playbook?: string; // name of the script those levels came from
+}
+
+// 1 = cooperative caller (practice), 2 = frustrated with objections (hiring bar), 3 = hostile, pushes policy (certification bar)
+export type PracticeLevel = 1 | 2 | 3;
+
+// What the script analyzer extracted from an uploaded call script, shown for review before the levels are saved.
+export interface Playbook {
+  name: string;
+  role: string;
+  script: string[];
+  critical: { step: number; reason: string }[];
+  policies: string[];
+  objections: { customerSays: string; repShould: string }[];
+  levels: Scenario[];
+}
+
+export interface BarResult {
+  name: 'Hiring bar' | 'Certification bar';
+  passed: boolean;
+  reasons: string[]; // why it failed; empty when passed
 }
 
 export interface CandidateProfile {
@@ -69,6 +93,7 @@ export interface ScriptStep {
   status: StepStatus;
   quote: string | null;
   atMs: number | null;
+  critical?: boolean;
 }
 
 export interface Scorecard extends CandidateProfile {
@@ -87,6 +112,7 @@ export interface Scorecard extends CandidateProfile {
   rejectedFindings: number;
   scriptSteps: ScriptStep[];
   scriptAdherence: number | null; // 0-100, computed in code from scriptSteps
+  bar?: BarResult | null; // pass/fail against the level's hiring or certification criteria
   metrics: SpeechMetrics;
   transcript: TranscriptLine[];
 }

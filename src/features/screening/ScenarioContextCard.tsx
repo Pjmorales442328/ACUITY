@@ -14,7 +14,7 @@ export const ScenarioContextCard: React.FC<{ scenario: Scenario }> = ({ scenario
   <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-3">
     <div className="flex items-center justify-between border-b border-slate-100 pb-2">
       <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Scenario</h3>
-      <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{scenario.category}</span>
+      <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{scenario.level ? scenario.difficulty : scenario.category}</span>
     </div>
     <div>
       <p className="text-sm font-semibold text-slate-900">{scenario.title}</p>
@@ -25,7 +25,12 @@ export const ScenarioContextCard: React.FC<{ scenario: Scenario }> = ({ scenario
       <div>
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Your call script</span>
         <ol className="list-decimal list-inside space-y-1 text-xs text-slate-700">
-          {scenario.script.map((step, i) => <li key={i}>{step}</li>)}
+          {scenario.script.map((step, i) => (
+            <li key={i}>
+              {step}
+              {scenario.critical?.includes(i + 1) && <span className="ml-1 text-[9px] font-bold uppercase text-red-700">critical</span>}
+            </li>
+          ))}
         </ol>
       </div>
     )}

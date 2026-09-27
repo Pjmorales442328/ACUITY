@@ -14,7 +14,7 @@ export function parseScenario(raw: any): Scenario | null {
     difficulty: str(raw?.difficulty, 60),
     category: CATEGORIES.includes(raw?.category) ? raw.category : 'Custom',
     customerName: str(raw?.customerName, 60),
-    persona: str(raw?.persona, 2000),
+    persona: str(raw?.persona, 3000),
     greeting: str(raw?.greeting, 400),
     keyterms: Array.isArray(raw?.keyterms)
       ? raw.keyterms.map((k: unknown) => str(k, 50)).filter(Boolean).slice(0, 50)
@@ -22,6 +22,10 @@ export function parseScenario(raw: any): Scenario | null {
     voice: VOICES.includes(raw?.voice) ? raw.voice : 'anna',
     script: Array.isArray(raw?.script) ? raw.script.map((k: unknown) => str(k, 300)).filter(Boolean).slice(0, 20) : []
   };
+  if (Array.isArray(raw?.critical)) s.critical = raw.critical.filter((n: unknown) => Number.isInteger(n) && (n as number) >= 1 && (n as number) <= s.script.length);
+  if (Array.isArray(raw?.policies)) s.policies = raw.policies.map((p: unknown) => str(p, 300)).filter(Boolean).slice(0, 15);
+  if ([1, 2, 3].includes(raw?.level)) s.level = raw.level;
+  if (raw?.playbook) s.playbook = str(raw.playbook, 120);
   return s.id && s.title && s.customerName && s.persona && s.greeting ? s : null;
 }
 

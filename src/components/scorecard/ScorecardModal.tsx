@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Printer, X } from 'lucide-react';
 import type { Scorecard } from '../../types';
+import { BarVerdict } from './BarVerdict';
 import { CallTranscript } from './CallTranscript';
 import { EvidenceList } from './EvidenceList';
 import { ReadinessHeader } from './ReadinessHeader';
@@ -61,6 +62,7 @@ export const ScorecardModal: React.FC<{ scorecard: Scorecard; onClose: () => voi
           {tab === 'REPORT' ? (
             <>
               <ReadinessHeader sc={sc} />
+              <BarVerdict bar={sc.bar} />
               <ScriptChecklist steps={sc.scriptSteps || []} adherence={sc.scriptAdherence ?? null} onJump={jumpTo} />
               <SpeechMetricsGrid m={sc.metrics} />
               <EvidenceList findings={sc.findings} rejected={sc.rejectedFindings} onJump={jumpTo} />

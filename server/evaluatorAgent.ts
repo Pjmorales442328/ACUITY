@@ -1,8 +1,6 @@
-// Runs a short AssemblyAI Voice Agent session whose JSON-Schema tool call returns the structured assessment.
-import WebSocket from 'ws';
+// Evaluator: rubric and JSON-Schema tool for the post-call assessment, run as a silent Voice Agent tool call.
+import { callAgentTool } from './agentTool';
 
-const VOICE_AGENT_URL = 'wss://agents.assemblyai.com/v1/ws';
-const TIMEOUT_MS = 45_000;
 const DIMENSIONS = ['EMPATHY', 'OWNERSHIP', 'ACCURACY', 'CLARITY', 'LANGUAGE'];
 const score = { type: 'integer', description: '1 (poor) to 5 (excellent), per the rubric anchors.' };
 
@@ -33,10 +31,8 @@ const SCRIPT_STEPS_PROP = {
 };
 
 const SUBMIT_TOOL = {
-  type: 'function',
   name: 'submit_assessment',
   description: 'Submit the final assessment of the CANDIDATE. Call this exactly once, when instructed.',
-  execution_mode: 'hold',
   parameters: {
     type: 'object',
     properties: {
@@ -89,31 +85,5 @@ function submitTool(withScript: boolean) {
 }
 
 export function evaluateCall(apiKey: string, context: string, withScript: boolean): Promise<RawEvaluation> {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(VOICE_AGENT_URL, { headers: { Authorization: `Bearer ${apiKey}` } });
-    const finish = (fn: () => void) => {
-      clearTimeout(timer);
-      try {
-        ws.close(1000);
-      } catch {}
-      fn();
-    };
-    const timer = setTimeout(() => finish(() => reject(new Error('Evaluator agent timed out'))), TIMEOUT_MS);
-
-    ws.on('open', () => ws.send(JSON.stringify({
-      type: 'session.update',
-      session: { system_prompt: `${RUBRIC}\n\n${context}`, tools: [submitTool(withScript)] }
-    })));
-    ws.on('message', raw => {
-      const m = JSON.parse(raw.toString());
-      if (m.type === 'session.ready') {
-        ws.send(JSON.stringify({ type: 'reply.create', instructions: 'Call submit_assessment now with your complete assessment. Do not speak.' }));
-      } else if (m.type === 'tool.call' && m.name === 'submit_assessment') {
-        finish(() => resolve(m.arguments as RawEvaluation));
-      } else if (m.type === 'session.error' || m.type === 'error') {
-        finish(() => reject(new Error(`Evaluator agent error: ${m.message}`)));
-      }
-    });
-    ws.on('error', err => finish(() => reject(err)));
-  });
+  return callAgentTool<RawEvaluation>(apiKey, `${RUBRIC}\n\n${context}`, submitTool(withScript));
 }

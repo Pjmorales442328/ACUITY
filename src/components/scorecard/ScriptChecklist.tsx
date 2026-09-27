@@ -24,7 +24,7 @@ export const ScriptChecklist: React.FC<{ steps: ScriptStep[]; adherence: number 
           <li key={i} className="flex items-start gap-3 p-2.5">
             {STATUS[s.status].icon}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-slate-900"><span className="text-slate-400 mr-1">{i + 1}.</span>{s.step}</p>
+              <p className="text-xs text-slate-900"><span className="text-slate-400 mr-1">{i + 1}.</span>{s.step}{s.critical && <span className="ml-1.5 px-1.5 py-px rounded bg-red-50 border border-red-200 text-red-700 text-[9px] font-bold uppercase">Critical</span>}</p>
               {s.quote && <blockquote className="text-xs text-slate-600 italic mt-1">"{s.quote}"</blockquote>}
             </div>
             <div className="flex flex-col items-end gap-1 shrink-0">

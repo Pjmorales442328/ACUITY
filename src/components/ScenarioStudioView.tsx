@@ -3,16 +3,17 @@ import React, { useState } from 'react';
 import { BookOpen, Play, Plus } from 'lucide-react';
 import type { Scenario } from '../types';
 import { ScenarioForm } from './ScenarioForm';
+import { ScriptImport } from './studio/ScriptImport';
 
 interface ScenarioStudioViewProps {
   scenarios: Scenario[];
   activeScenarioId: string;
   onSelectScenario: (scenarioId: string) => void;
   onStartRoleplay: (scenarioId: string) => void;
-  onAddCustomScenario: (sc: Scenario) => void;
+  onAddScenarios: (list: Scenario[]) => void;
 }
 
-export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenarios, activeScenarioId, onSelectScenario, onStartRoleplay, onAddCustomScenario }) => {
+export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenarios, activeScenarioId, onSelectScenario, onStartRoleplay, onAddScenarios }) => {
   const [creating, setCreating] = useState(false);
 
   return (
@@ -25,16 +26,18 @@ export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenario
           </div>
           <p className="text-xs text-slate-500">Each scenario becomes the persona, opening line and voice of the AssemblyAI Voice Agent customer.</p>
         </div>
-        <button onClick={() => setCreating(c => !c)} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold cursor-pointer">
-          <Plus className="w-3.5 h-3.5" /> Create scenario
+        <button onClick={() => setCreating(c => !c)} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-semibold cursor-pointer">
+          <Plus className="w-3.5 h-3.5" /> Write a scenario by hand
         </button>
       </div>
+
+      <ScriptImport onCreate={onAddScenarios} />
 
       {creating && (
         <ScenarioForm
           onCancel={() => setCreating(false)}
           onCreate={sc => {
-            onAddCustomScenario(sc);
+            onAddScenarios([sc]);
             setCreating(false);
           }}
         />

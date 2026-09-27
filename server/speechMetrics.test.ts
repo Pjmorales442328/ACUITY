@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { computeSpeechMetrics, locateQuote, segmentWords, type Word } from './speechMetrics';
 import { scriptAdherence } from './assessment';
+import { evaluateBar } from './criteria';
 
 const w = (text: string, start: number, end: number, confidence = 0.99): Word => ({ text, start, end, confidence });
 
@@ -39,4 +40,12 @@ assert.equal(locateQuote(words, 'That was the policy'), null, 'paraphrase reject
 const step = (status: 'DONE' | 'PARTIAL' | 'MISSED') => ({ step: 's', status, quote: null, atMs: null });
 assert.equal(scriptAdherence([]), null);
 assert.equal(scriptAdherence([step('DONE'), step('PARTIAL'), step('MISSED'), step('MISSED')]), 38);
-console.log('speechMetrics: all checks passed');
+
+// Bars: level 1 has none; a missed critical step fails even a strong call.
+const crit = (status: 'DONE' | 'MISSED') => ({ step: 'Verify identity', status, quote: null, atMs: null, critical: true });
+assert.equal(evaluateBar(1, 'READY', [], 100), null);
+assert.equal(evaluateBar(2, 'READY_WITH_COACHING', [crit('DONE')], 75)?.passed, true);
+assert.equal(evaluateBar(2, 'READY', [crit('MISSED')], 100)?.passed, false);
+assert.equal(evaluateBar(3, 'READY_WITH_COACHING', [crit('DONE')], 95)?.reasons.length, 1, 'certification needs READY');
+assert.equal(evaluateBar(3, 'READY', [crit('DONE')], 85)?.passed, false, 'certification needs 90%');
+console.log('speechMetrics + criteria: all checks passed');

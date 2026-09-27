@@ -1,6 +1,7 @@
 // Post-call pipeline: Universal-3.5 Pro transcript -> speech metrics -> evaluator agent -> verified scorecard.
 import type { Dimension, DimensionScores, Finding, Readiness, Scenario, Scorecard, ScriptStep, SpeechMetrics, TranscriptLine } from '../src/types';
 import type { CallRecording } from './customerAgent';
+import { evaluateBar } from './criteria';
 import { evaluateCall } from './evaluatorAgent';
 import { computeSpeechMetrics, locateQuote, segmentWords, type Segment } from './speechMetrics';
 import { transcribeCandidate } from './transcribe';
@@ -38,10 +39,13 @@ export function scriptAdherence(steps: ScriptStep[]): number | null {
 
 function formatContext(scenario: Scenario, metrics: SpeechMetrics, timeline: TranscriptLine[]) {
   const script = scenario.script.length
-    ? `\nCOMPANY CALL SCRIPT the candidate was trained to follow. Check each step in script_steps:\n${scenario.script.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n`
+    ? `\nCOMPANY CALL SCRIPT the candidate was trained to follow. Check each step in script_steps:\n${scenario.script.map((s, i) => `${i + 1}. ${s}${scenario.critical?.includes(i + 1) ? ' [CRITICAL: must be done fully]' : ''}`).join('\n')}\n`
+    : '';
+  const policies = scenario.policies?.length
+    ? `\nCOMPANY POLICIES. Score ACCURACY down if the candidate contradicts any of these or promises more:\n${scenario.policies.map(p => `- ${p}`).join('\n')}\n`
     : '';
   return `SCENARIO: ${scenario.title}. ${scenario.description}
-${script}
+${script}${policies}
 OBJECTIVE SPEECH METRICS (measured by AssemblyAI Universal-3.5 Pro from the candidate's audio):
 - Speaking pace: ${metrics.wordsPerMinute} words per minute (conversational English is roughly 120-160)
 - Filler words: ${metrics.fillerCount} (${metrics.fillersPer100Words} per 100 words)
@@ -79,7 +83,8 @@ export async function assessCall(apiKey: string, scenario: Scenario, rec: CallRe
       findings: [],
       rejectedFindings: 0,
       scriptSteps: [],
-      scriptAdherence: null
+      scriptAdherence: null,
+      bar: evaluateBar(scenario.level, 'INSUFFICIENT_SAMPLE', [], null)
     };
   }
 
@@ -102,19 +107,22 @@ export async function assessCall(apiKey: string, scenario: Scenario, rec: CallRe
   // A script step only counts as covered if the candidate's words for it are really in the transcript.
   let rejected = (ev.findings?.length || 0) - findings.length;
   const scriptSteps: ScriptStep[] = scenario.script.map((step, i) => {
+    const critical = scenario.critical?.includes(i + 1) || undefined;
     const r = ev.script_steps?.find(s => s.step_number === i + 1);
-    if (!r || r.status === 'MISSED') return { step, status: 'MISSED', quote: null, atMs: null };
+    if (!r || r.status === 'MISSED') return { step, status: 'MISSED', quote: null, atMs: null, critical };
     const atMs = locateQuote(words, r.quote || '');
     if (atMs === null) {
       rejected++;
-      return { step, status: 'MISSED', quote: null, atMs: null };
+      return { step, status: 'MISSED', quote: null, atMs: null, critical };
     }
-    return { step, status: r.status, quote: r.quote, atMs };
+    return { step, status: r.status, quote: r.quote, atMs, critical };
   });
+  const readiness = readinessFromScores(scores);
+  const adherence = scriptAdherence(scriptSteps);
 
   return {
     ...base,
-    readiness: readinessFromScores(scores),
+    readiness,
     cefr: ev.cefr,
     cefrRationale: ev.cefr_rationale,
     dimensionScores: scores,
@@ -123,6 +131,7 @@ export async function assessCall(apiKey: string, scenario: Scenario, rec: CallRe
     findings,
     rejectedFindings: rejected,
     scriptSteps,
-    scriptAdherence: scriptAdherence(scriptSteps)
+    scriptAdherence: adherence,
+    bar: evaluateBar(scenario.level, readiness, scriptSteps, adherence)
   };
 }
