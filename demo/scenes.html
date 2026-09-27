@@ -38,68 +38,81 @@
   .l3 { position: absolute; left: 60px; bottom: 56px; background: var(--paper); color: var(--ink); padding: 22px 34px; border-left: 8px solid var(--signal); box-shadow: 0 18px 50px rgba(0,0,0,.35); }
   .l3 b { font: 600 36px 'Fraunces', serif; display: block; }
   .l3 span { font: 400 24px 'IBM Plex Mono', monospace; color: var(--muted); }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 70px; }
+  .cols div { border-top: 6px solid var(--ink); padding-top: 28px; }
+  .cols .lv { font: 500 24px 'IBM Plex Mono', monospace; letter-spacing: .06em; text-transform: uppercase; }
+  .cols b { display: block; font: 600 56px 'Fraunces', serif; margin: 12px 0 10px; }
+  .cols .who { font: 500 32px 'Fraunces', serif; font-style: italic; color: var(--muted); }
+  .cols ul { margin-top: 26px; padding-left: 28px; font-size: 29px; line-height: 1.5; }
+  .doc { font: 400 30px/1.5 'IBM Plex Mono', monospace; background: #fff; border: 2px solid var(--rule); padding: 34px 40px; width: 900px; box-shadow: 0 16px 40px rgba(22,20,15,.08); }
+  .doc mark { background: #FDE2D4; color: var(--ink); padding: 0 4px; }
   .fine { position: absolute; right: 60px; bottom: 26px; font: 400 20px 'IBM Plex Mono', monospace; color: rgba(243,238,228,.8); background: rgba(22,20,15,.6); padding: 6px 12px; }
 </style>
 </head>
 <body>
-
 <section id="cold" class="dark">
-  <p class="label" style="color:#A59C8C">00:01 · Jordan Reynolds, customer · card dispute line</p>
-  <p class="serif" style="font-size:78px;line-height:1.18;font-weight:500;margin-top:70px;max-width:1600px">"There's a forty five dollar charge on my card. I <span class="signal">NEVER</span> signed up for that! And my rent is due <span class="signal">TOMORROW</span>."</p>
+  <p class="label" style="color:#A59C8C">00:01 · Level 3 caller · ApexPay dispute line</p>
+  <p class="serif" style="font-size:84px;line-height:1.18;font-weight:500;margin-top:70px;max-width:1600px">"I am <span class="signal">not</span> giving you my personal information. This is a <span class="signal">scam</span> if you ask!"</p>
   <img src="waveform.svg" style="position:absolute;left:150px;bottom:110px;width:1620px;height:210px;opacity:.9" alt="">
 </section>
 
 <section id="hook">
   <p class="label">The problem</p>
-  <h2 style="margin-top:40px">Most contact centers find out whether a new hire can handle that call <span class="signal">after</span> they've hired them.</h2>
-  <div style="display:flex;align-items:center;gap:60px;margin-top:90px">
-    <p class="lead" style="max-width:760px">Before that: a phone screen, some small talk, and a note nobody can check.</p>
-    <div class="note">"Good English. Seems confident."</div>
+  <h2 style="margin-top:40px">Every contact center has a script. You find out who follows it when a customer is <span class="signal">yelling.</span></h2>
+  <div style="display:flex;align-items:center;gap:70px;margin-top:80px">
+    <div class="doc">§2 Recording disclosure<br><mark>"Before we continue, this call is recorded for quality and training purposes."</mark></div>
+    <div class="note">Verbatim. Every call.</div>
   </div>
 </section>
 
 <section id="what">
   <p class="label">AcuityVoice</p>
-  <h2 style="margin-top:40px">Screen for the actual job.</h2>
+  <h2 style="margin-top:40px">Upload your script. Get a caller <span class="signal">and</span> a bar.</h2>
   <div class="lines" style="margin-top:70px">
-    <p><span>01</span>A live customer who interrupts, pushes back and escalates.</p>
-    <p><span>02</span>Scored against your company's own call script.</p>
-    <p><span>03</span>Every score backed by the candidate's exact words.</p>
+    <p><span>01</span>Reads the script file your reps already use: .docx, .pdf, .txt.</p>
+    <p><span>02</span>Finds the critical steps, the policies and the objections.</p>
+    <p><span>03</span>Builds three live callers, from practice to certification.</p>
   </div>
+</section>
+
+<section id="levels">
+  <p class="label">Three callers from one script</p>
+  <h2 style="margin-top:30px;font-size:76px">Pass or fail is decided in code.</h2>
+  <div class="cols">
+    <div><span class="lv">Level 1 · Practice</span><b>Cooperative</b><p class="who">Sticks to the main call flow</p><ul><li>No bar</li><li>Report shows every missed step</li></ul></div>
+    <div style="border-color:#9A6A00"><span class="lv" style="color:#9A6A00">Level 2 · Hiring bar</span><b>Frustrated</b><p class="who">Raises the script's objections</p><ul><li>Every critical step done</li><li>70%+ of the script</li><li>Ready, or Ready with coaching</li></ul></div>
+    <div style="border-color:var(--signal)"><span class="lv signal">Level 3 · Certification bar</span><b>Hostile</b><p class="who">Fights verification, demands what policy forbids</p><ul><li>Every critical step done</li><li>90%+ of the script</li><li>Ready</li></ul></div>
+  </div>
+</section>
+
+<section id="call">
+  <p class="label">Level 3, recorded</p>
+  <h2 style="margin-top:40px">The certification call.</h2>
+  <dl class="facts">
+    <dt>Rep</dt><dd>Sam Rivera, trainee, card support</dd>
+    <dt>Script</dt><dd>ApexPay disputes: 9 steps, 2 critical</dd>
+    <dt>Caller</dt><dd>Casey, hostile, hasn't seen the script</dd>
+  </dl>
 </section>
 
 <section id="how">
   <p class="label">Under the hood · one AssemblyAI key</p>
-  <h2 style="margin-top:40px">Call, measure, judge, verify.</h2>
+  <h2 style="margin-top:40px">Read, call, measure, decide.</h2>
   <div class="flow">
-    <div><span class="by">VOICE AGENT API</span><b>Call</b><p>The customer, live: persona, voice, keyterms. Max-accuracy turn-taking.</p></div>
-    <div><span class="by">UNIVERSAL-3.5 PRO</span><b>Measure</b><p>Candidate audio with every um and uh, word timings and confidence.</p></div>
-    <div><span class="by">VOICE AGENT API</span><b>Judge</b><p>A second session scores the call through one JSON-Schema tool call.</p></div>
-    <div><span class="by">OUR CODE</span><b>Verify</b><p>Quotes must match the transcript word for word, or they're dropped.</p></div>
+    <div><span class="by">VOICE AGENT API</span><b>Read</b><p>The script file becomes a playbook through one JSON-Schema tool call.</p></div>
+    <div><span class="by">VOICE AGENT API</span><b>Call</b><p>The customer, live, with a temperament set by the level.</p></div>
+    <div><span class="by">UNIVERSAL-3.5 PRO</span><b>Measure</b><p>Every um and uh, with word timings: pace, fillers, pauses.</p></div>
+    <div><span class="by">OUR CODE</span><b>Decide</b><p>Quotes must match the transcript. Bars are computed, never generated.</p></div>
   </div>
-</section>
-
-<section id="demo">
-  <p class="label">A screening, recorded</p>
-  <h2 style="margin-top:40px">Card dispute. Rent due tomorrow.</h2>
-  <dl class="facts">
-    <dt>Candidate</dt><dd>Sam Rivera, applying for card support</dd>
-    <dt>Script</dt><dd>ApexPay's 7-step dispute script</dd>
-    <dt>Customer</dt><dd>Jordan, who hasn't seen the script</dd>
-  </dl>
-</section>
-
-<section id="studio">
-  <p class="label">Bring your own call</p>
-  <h2 style="margin-top:30px;font-size:72px">Your customer. Your script. Your rubric.</h2>
-  <div class="shot"><img src="out/shots/studio.png" alt=""></div>
 </section>
 
 <section id="value">
   <p class="label">For contact-center hiring and training teams</p>
-  <h2 style="margin-top:40px">A phone screen a reviewer can check in <span class="signal">one minute.</span></h2>
-  <p class="lead" style="margin-top:50px">The same customer and rubric for every candidate, with the evidence attached. A readiness signal, not an automated hiring decision.</p>
-  <div class="pills" style="margin-top:70px"><span style="color:var(--green)">Ready</span><span style="color:#9A6A00">Ready with coaching</span><span style="color:var(--signal)">Needs training</span></div>
+  <h2 style="margin-top:40px">Hire against a bar. Certify with <span class="signal">evidence.</span></h2>
+  <div class="cols" style="grid-template-columns:1fr 1fr">
+    <div><span class="lv">Hiring</span><b>One-minute review</b><ul><li>Same script and caller for every candidate</li><li>Every score tied to their exact words</li></ul></div>
+    <div><span class="lv">Training</span><b>Ready to leave nesting</b><ul><li>Practice first, certify at Level 3</li><li>A person always makes the final call</li></ul></div>
+  </div>
 </section>
 
 <section id="close" class="dark">
@@ -110,16 +123,20 @@
   </div>
 </section>
 
+<section id="l3_studio" style="background:none">
+  <div class="l3"><b>Scenario Studio · a real upload</b><span>ApexPay_Dispute_Script.docx → playbook in about 6 seconds</span></div>
+</section>
+
 <section id="l3_call" style="background:none">
-  <div class="l3"><b>Live screening call</b><span>Customer: AssemblyAI Voice Agent · Candidate: Sam Rivera</span></div>
+  <div class="l3"><b>Level 3 · Certification bar</b><span>Customer: AssemblyAI Voice Agent · Rep: Sam Rivera</span></div>
 </section>
 
 <section id="l3_fine" style="background:none">
-  <div class="fine">Candidate voice simulated for this recording</div>
+  <div class="fine">Rep voice simulated for this recording</div>
 </section>
 
 <section id="l3_report" style="background:none">
-  <div class="l3"><b>The report, seconds after hang-up</b><span>Script checklist · Universal-3.5 Pro metrics · verified quotes</span></div>
+  <div class="l3"><b>The report, seconds after hang-up</b><span>Bar computed in code · every quote checked against the transcript</span></div>
 </section>
 
 <script>

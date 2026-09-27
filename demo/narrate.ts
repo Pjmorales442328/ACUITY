@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import WebSocket from 'ws';
 
-const VOICE = process.env.NARRATOR_VOICE || 'paul';
+const VOICE = process.env.NARRATOR_VOICE || 'anna';
 const OUT = path.join(import.meta.dirname, 'out', 'narration');
 const lines: { id: string; text: string }[] = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, 'narration.json'), 'utf8'));
 
@@ -24,7 +24,7 @@ function speak(text: string): Promise<Buffer> {
     const timer = setTimeout(() => { ws.close(); reject(new Error('timeout')); }, 90_000);
     ws.on('open', () => ws.send(JSON.stringify({
       type: 'session.update',
-      session: { system_prompt: 'You are a narrator. Say nothing beyond your greeting.', greeting: text, input: { format: { encoding: 'audio/pcm' } }, output: { voice: VOICE, format: { encoding: 'audio/pcm' } } }
+      session: { system_prompt: 'You are an upbeat, high-energy product launch narrator. Say nothing beyond your greeting.', greeting: text, input: { format: { encoding: 'audio/pcm' } }, output: { voice: VOICE, format: { encoding: 'audio/pcm' } } }
     })));
     ws.on('message', raw => {
       const m = JSON.parse(raw.toString());
