@@ -5,6 +5,7 @@ import type { CandidateProfile, Scenario, Scorecard } from '../src/types';
 import { assessCall } from './assessment';
 import { candidateStore } from './candidateStore';
 import { CustomerAgentSession } from './customerAgent';
+import { DemoRep } from './demoRep';
 import { parseProfile, parseScenario } from './validate';
 
 // Hard cap per call to protect API credits.
@@ -12,20 +13,28 @@ const MAX_CALL_MS = 180_000;
 
 export function handleCallSocket(client: WebSocket, apiKey: string | undefined) {
   let session: CustomerAgentSession | null = null;
+  let demoRep: DemoRep | null = null;
   let scenario: Scenario | null = null;
   let profile: CandidateProfile | null = null;
   let limitTimer: NodeJS.Timeout | null = null;
 
   const send = (event: Record<string, unknown>) => {
+    if (event.type === 'user_speech_started') demoRep?.customerInterrupted();
     if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(event));
   };
   const sendAudio = (pcm: Buffer) => {
+    demoRep?.hearCustomer(pcm);
     if (client.readyState === WebSocket.OPEN) client.send(pcm, { binary: true });
+  };
+  const stopDemoRep = () => {
+    demoRep?.stop();
+    demoRep = null;
   };
 
   async function endCall() {
     if (!session || !scenario || !profile || !apiKey) return;
     if (limitTimer) clearTimeout(limitTimer);
+    stopDemoRep();
     const recording = session.stop();
     session = null;
     send({ type: 'analysis_started' });
@@ -42,7 +51,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
 
   client.on('message', (data, isBinary) => {
     if (isBinary) {
-      session?.onMicAudio(data as Buffer);
+      if (!demoRep) session?.onMicAudio(data as Buffer);
       return;
     }
     let msg: any;
@@ -60,6 +69,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
       if (!scenario) return send({ type: 'error', message: 'Scenario is missing required fields' });
       session = new CustomerAgentSession(apiKey, scenario, send, sendAudio);
       session.start();
+      if (msg.demo === true) demoRep = new DemoRep(apiKey, scenario, session, send);
       limitTimer = setTimeout(() => {
         send({ type: 'time_limit' });
         endCall();
@@ -71,6 +81,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
 
   client.on('close', () => {
     if (limitTimer) clearTimeout(limitTimer);
+    stopDemoRep();
     session?.stop();
     session = null;
   });

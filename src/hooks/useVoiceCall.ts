@@ -18,10 +18,12 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
   const [fillers, setFillers] = useState(0);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
+  const [demo, setDemo] = useState(false);
   const [analysers, setAnalysers] = useState<{ agent: AnalyserNode | null; mic: AnalyserNode | null }>({ agent: null, mic: null });
 
   const socket = useRef<CallSocket | null>(null);
   const player = useRef<PcmPlayer | null>(null);
+  const repPlayer = useRef<PcmPlayer | null>(null);
   const mic = useRef<MicCapture | null>(null);
   const ctx = useRef<AudioContext | null>(null);
 
@@ -35,6 +37,8 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
     mic.current?.stop();
     mic.current = null;
     player.current?.flush();
+    repPlayer.current?.flush();
+    repPlayer.current = null;
     ctx.current?.close();
     ctx.current = null;
   };
@@ -57,6 +61,11 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
         setInterim('');
         setFillers(n => n + countFillers(e.text || ''));
         return setLines(l => addCandidateLine(l, e.itemId, e.text || ''));
+      case 'rep_audio': {
+        const bytes = Uint8Array.from(atob(e.data), c => c.charCodeAt(0));
+        return repPlayer.current?.play(bytes.buffer);
+      }
+      case 'rep_interrupted': return repPlayer.current?.flush();
       case 'time_limit': return setNotice('Time limit reached. Ending the call.');
       case 'analysis_started':
         releaseAudio();
@@ -74,8 +83,10 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
     }
   };
 
-  async function start(scenario: Scenario, profile: CandidateProfile) {
+  // demo = true: an AI trainee rep (second Voice Agent) takes the call instead of the microphone.
+  async function start(scenario: Scenario, profile: CandidateProfile, demoCall = false) {
     setPhase('connecting');
+    setDemo(demoCall);
     setLines([]);
     setInterim('');
     setElapsed(0);
@@ -90,9 +101,14 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
     socket.current = openCallSocket({
       onOpen: async () => {
         try {
-          mic.current = await startMic(audioCtx, pcm => socket.current?.sendAudio(pcm), () => !!player.current?.isPlaying);
-          setAnalysers({ agent: player.current!.analyser, mic: mic.current.analyser });
-          socket.current?.start(scenario, profile);
+          if (demoCall) {
+            repPlayer.current = new PcmPlayer(audioCtx, () => {});
+            setAnalysers({ agent: player.current!.analyser, mic: repPlayer.current.analyser });
+          } else {
+            mic.current = await startMic(audioCtx, pcm => socket.current?.sendAudio(pcm), () => !!player.current?.isPlaying);
+            setAnalysers({ agent: player.current!.analyser, mic: mic.current.analyser });
+          }
+          socket.current?.start(scenario, profile, demoCall);
         } catch (err: any) {
           setError(`Microphone unavailable: ${err?.message || err}`);
           setPhase('error');
@@ -123,5 +139,5 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
     releaseAudio();
   }, []);
 
-  return { phase, lines, interim, agentSpeaking, candidateSpeaking, elapsed, fillers, notice, error, analysers, start, end };
+  return { phase, demo, lines, interim, agentSpeaking, candidateSpeaking, elapsed, fillers, notice, error, analysers, start, end };
 }

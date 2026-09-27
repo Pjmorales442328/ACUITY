@@ -1,6 +1,6 @@
 // Call controls: start/end, timer, live speaking signals, analysis progress and errors.
 import React from 'react';
-import { AlertTriangle, Award, Headphones, Loader2, Phone, PhoneOff } from 'lucide-react';
+import { AlertTriangle, Award, Bot, Headphones, Loader2, Phone, PhoneOff } from 'lucide-react';
 import type { CallPhase } from '../hooks/useVoiceCall';
 
 interface CandidateControlsProps {
@@ -12,15 +12,17 @@ interface CandidateControlsProps {
   notice: string;
   error: string;
   hasScorecard: boolean;
+  demo: boolean;
   onStart: () => void;
   onEnd: () => void;
+  onDemo: () => void;
   onViewScorecard: () => void;
 }
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 export const CandidateControls: React.FC<CandidateControlsProps> = props => {
-  const { phase, elapsed, maxSeconds, candidateTurns, fillers, notice, error, hasScorecard } = props;
+  const { phase, elapsed, maxSeconds, candidateTurns, fillers, notice, error, hasScorecard, demo } = props;
   const inCall = phase === 'connecting' || phase === 'live';
 
   return (
@@ -44,12 +46,22 @@ export const CandidateControls: React.FC<CandidateControlsProps> = props => {
           </button>
         )}
 
+        {!inCall && (
+          <button
+            onClick={props.onDemo}
+            disabled={phase === 'analyzing'}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 text-slate-800 text-xs font-semibold cursor-pointer"
+          >
+            <Bot className="w-4 h-4 text-violet-600" /> Watch AI demo call
+          </button>
+        )}
+
         {phase === 'connecting' && <span className="text-xs text-slate-500 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" />Connecting to the customer...</span>}
 
         {phase === 'live' && (
           <div className="flex items-center gap-4 text-xs text-slate-600">
             <span className="font-mono font-semibold text-slate-900">{mmss(elapsed)} / {mmss(maxSeconds)}</span>
-            <span>Your turns: <b className="text-slate-900">{candidateTurns}</b></span>
+            <span>{demo ? 'Rep turns' : 'Your turns'}: <b className="text-slate-900">{candidateTurns}</b></span>
             <span>Filler words: <b className={fillers > 3 ? 'text-amber-600' : 'text-slate-900'}>{fillers}</b></span>
           </div>
         )}
@@ -64,10 +76,16 @@ export const CandidateControls: React.FC<CandidateControlsProps> = props => {
         )}
       </div>
 
+      {demo && inCall && (
+        <p className="flex items-center gap-2 text-xs text-violet-800 bg-violet-50 border border-violet-200 p-2.5 rounded-lg">
+          <Bot className="w-4 h-4 shrink-0" /> Demo call: both sides are AssemblyAI Voice Agents. An AI trainee rep is handling the AI customer, and it gets scored exactly like a human candidate.
+        </p>
+      )}
+
       {phase === 'analyzing' && (
         <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-900">
           <Loader2 className="w-4 h-4 animate-spin shrink-0 mt-0.5" />
-          <span>Assessing the call: transcribing your audio with Universal-3.5 Pro, measuring pace and fillers, then scoring with the evaluator agent. This takes about 10-20 seconds.</span>
+          <span>Assessing the call: transcribing the rep's audio with Universal-3.5 Pro, measuring pace and fillers, then scoring with the evaluator agent. This takes about 10-20 seconds.</span>
         </div>
       )}
 

@@ -4,7 +4,7 @@ import type { CandidateProfile, Scenario } from '../types';
 export type ServerEvent = { type: string; [key: string]: any };
 
 export interface CallSocket {
-  start: (scenario: Scenario, profile: CandidateProfile) => void;
+  start: (scenario: Scenario, profile: CandidateProfile, demo: boolean) => void;
   sendAudio: (pcm: ArrayBuffer) => void;
   end: () => void;
   close: () => void;
@@ -33,7 +33,7 @@ export function openCallSocket(handlers: {
 
   const sendJson = (msg: object) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify(msg));
   return {
-    start: (scenario, profile) => sendJson({ type: 'start', scenario, profile }),
+    start: (scenario, profile, demo) => sendJson({ type: 'start', scenario, profile, demo }),
     sendAudio: pcm => ws.readyState === WebSocket.OPEN && ws.send(pcm),
     end: () => sendJson({ type: 'end' }),
     close: () => ws.close()

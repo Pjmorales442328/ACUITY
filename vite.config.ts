@@ -7,5 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': path.resolve(__dirname, '.') }
-  }
+  },
+  // demo/ holds video tooling and renders; editing it must not reload a page mid-call.
+  server: { watch: { ignored: ['**/demo/**', '**/data/**'] } }
 });

@@ -11,6 +11,8 @@ A candidate takes a live phone call with an upset customer played by the **Assem
 3. **Judge (Voice Agent API).** A short evaluator session receives the transcript and metrics. `reply.create` asks it to call `submit_assessment`, and the tool arguments become the scorecard: five rubric dimensions scored 1–5, a CEFR level, the customer outcome and findings.
 4. **Verify.** Findings are kept only if their quote appears word for word in the transcript. Readiness is calculated from the scores in code. If the candidate says fewer than 25 words, the result is "Not enough speech".
 
+**Demo mode.** "Watch AI demo call" puts a second Voice Agent on the line as an AI trainee rep. The server pipes each agent's audio into the other in real time, so you can see the full pipeline without a microphone. The rep is scored exactly like a human candidate.
+
 Readiness is reported as *Ready*, *Ready with coaching* or *Needs training*. It is a signal to support human review, not an automated hiring decision.
 
 ## Run it
@@ -39,6 +41,7 @@ server/
   callHandler.ts           One browser socket: live call, then post-call assessment
   customerAgent.ts         Voice Agent session playing the customer; records candidate mic audio
   customerPrompt.ts        Customer system prompt (follows AssemblyAI's prompting guide)
+  demoRep.ts               Demo mode: a second Voice Agent plays the rep, audio paced in real time
   transcribe.ts            Upload + Universal-3.5 Pro transcription
   speechMetrics.ts         Pace, fillers, pauses, confidence, quote location (+ .test.ts)
   evaluatorAgent.ts        Voice Agent evaluator returning the scorecard via tool call
@@ -54,4 +57,8 @@ src/
   services/                WebSocket and REST clients
   data/scenarios.ts        Built-in customer scenarios
   types.ts                 Types shared by client and server
+demo/
+  narration.json           Demo-video voiceover script
+  narrate.ts               Speaks each line via the Voice Agent `greeting` (npx tsx demo/narrate.ts)
+  scenes.html              Title cards for the demo video (1920x1080)
 ```
