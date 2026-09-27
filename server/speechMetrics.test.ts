@@ -36,6 +36,9 @@ assert.equal(segmentWords(words, [2250]).length, 3, 'customer turn at 2.25s spli
 assert.equal(locateQuote(words, 'you need to wait, like, 7 days.'), 2215, 'punctuation-insensitive match');
 assert.equal(locateQuote(words, 'That is the policy'), 11000);
 assert.equal(locateQuote(words, 'That was the policy'), null, 'paraphrase rejected');
+assert.equal(locateQuote(words, 'you need to wait, like, seven days.'), 2215, 'number words match digits');
+assert.equal(locateQuote(words, 'That is the policy. You need to wait, like, 7 days.'), 2215, 'stitched sentences each found');
+assert.equal(locateQuote(words, 'That is the policy. You must wait.'), null, 'one paraphrased sentence rejects the stitch');
 // Script adherence: partial steps count half.
 const step = (status: 'DONE' | 'PARTIAL' | 'MISSED') => ({ step: 's', status, quote: null, atMs: null });
 assert.equal(scriptAdherence([]), null);

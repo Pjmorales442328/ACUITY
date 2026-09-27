@@ -25,17 +25,29 @@ const bare = (w: string) => w.toLowerCase().replace(/[^a-z']/g, '');
 // "like," with a trailing comma is how Universal-3.5 Pro marks filler usage of "like".
 const isFiller = (w: Word) => FILLERS.has(bare(w.text)) || /^like,$/i.test(w.text.trim());
 
-const tokens = (s: string) => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).filter(Boolean);
+const NUMBERS: Record<string, string> = { zero: '0', one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: '10' };
+// Number words and digits compare equal, so "last four digits" matches a transcript that wrote "last 4 digits".
+const tokens = (s: string) => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').split(/\s+/).filter(Boolean).map(t => NUMBERS[t] || t);
 
-// Start time of the first word of `quote` if it appears verbatim in the spoken words, else null.
-export function locateQuote(words: Word[], quote: string): number | null {
-  const q = tokens(quote);
-  const spoken = words.map(w => tokens(w.text).join(''));
-  if (!q.length) return null;
+function findRun(spoken: string[], q: string[]): number {
   for (let i = 0; i + q.length <= spoken.length; i++) {
-    if (q.every((t, j) => spoken[i + j] === t)) return words[i].start;
+    if (q.every((t, j) => spoken[i + j] === t)) return i;
   }
-  return null;
+  return -1;
+}
+
+// Start time of `quote` if it appears verbatim in the spoken words, else null.
+// A quote the model stitched from several sentences passes only if every sentence appears verbatim.
+export function locateQuote(words: Word[], quote: string): number | null {
+  const spoken = words.map(w => tokens(w.text).join(''));
+  const q = tokens(quote);
+  if (!q.length) return null;
+  const whole = findRun(spoken, q);
+  if (whole >= 0) return words[whole].start;
+  const parts = quote.split(/[.?!]+/).map(tokens).filter(p => p.length);
+  if (parts.length < 2) return null;
+  const hits = parts.map(p => findRun(spoken, p));
+  return hits.every(h => h >= 0) ? words[Math.min(...hits)].start : null;
 }
 
 // Groups words into utterances, splitting on long silences and wherever the customer spoke in between.

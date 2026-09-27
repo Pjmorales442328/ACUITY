@@ -112,6 +112,7 @@ export async function assessCall(apiKey: string, scenario: Scenario, rec: CallRe
     if (!r || r.status === 'MISSED') return { step, status: 'MISSED', quote: null, atMs: null, critical };
     const atMs = locateQuote(words, r.quote || '');
     if (atMs === null) {
+      console.warn(`[assessment] step ${i + 1} quote not found in transcript, counted as missed:`, r.quote);
       rejected++;
       return { step, status: 'MISSED', quote: null, atMs: null, critical };
     }
