@@ -10,7 +10,7 @@ export const READINESS: Record<Readiness, { label: string; pill: string; blurb: 
   READY_WITH_COACHING: {
     label: 'Ready with coaching',
     pill: 'bg-amber-50 border-amber-300 text-amber-800',
-    blurb: 'No critical gaps, but some dimensions are below 4.'
+    blurb: 'No rubric dimension scored 2 or lower, but some are below 4.'
   },
   NEEDS_TRAINING: {
     label: 'Needs training',
