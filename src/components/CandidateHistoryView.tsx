@@ -6,7 +6,8 @@ import {
   Trash2,
   Eye,
   Clock,
-  Plus
+  Plus,
+  MessageSquareText
 } from 'lucide-react';
 import { Scorecard, CefrLevel, HiringRecommendation } from '../types';
 
@@ -15,13 +16,15 @@ interface CandidateHistoryViewProps {
   onSelectCandidate: (candidate: Scorecard) => void;
   onDeleteCandidate: (id: string) => void;
   onStartNewAssessment: () => void;
+  onViewCandidateTranscript?: (candidate: Scorecard) => void;
 }
 
 export const CandidateHistoryView: React.FC<CandidateHistoryViewProps> = ({
   candidates,
   onSelectCandidate,
   onDeleteCandidate,
-  onStartNewAssessment
+  onStartNewAssessment,
+  onViewCandidateTranscript
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCefr, setFilterCefr] = useState<string>('ALL');
@@ -199,7 +202,7 @@ export const CandidateHistoryView: React.FC<CandidateHistoryViewProps> = ({
                       {c.targetRole} • <span className="text-slate-400">{c.candidateEmail}</span>
                     </p>
 
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1">
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 flex-wrap">
                       <span className="text-slate-700 font-medium truncate max-w-[220px]">
                         {c.scenarioTitle}
                       </span>
@@ -208,6 +211,18 @@ export const CandidateHistoryView: React.FC<CandidateHistoryViewProps> = ({
                         <Clock className="w-3 h-3 text-slate-400" />
                         {Math.floor(c.sessionDurationSeconds / 60)}m {c.sessionDurationSeconds % 60}s
                       </span>
+                      {c.finalSentimentScore !== undefined && (
+                        <>
+                          <span>•</span>
+                          <span className={`px-1.5 py-0.5 rounded font-mono font-bold text-[9px] border ${
+                            c.finalSentimentScore >= 75
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}>
+                            De-escalation: {c.finalSentimentScore}%
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -240,6 +255,14 @@ export const CandidateHistoryView: React.FC<CandidateHistoryViewProps> = ({
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => onViewCandidateTranscript ? onViewCandidateTranscript(c) : onSelectCandidate(c)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"
+                      title="Inspect Candidate Conversation Transcript"
+                    >
+                      <MessageSquareText className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Transcript</span>
+                    </button>
                     <button
                       onClick={() => onSelectCandidate(c)}
                       className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold shadow-2xs transition cursor-pointer"

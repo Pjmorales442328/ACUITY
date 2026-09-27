@@ -37,6 +37,13 @@ interface CandidateRecord {
   turnCount: number;
   markersCount: number;
   createdAt: string;
+  transcript?: any[];
+  initialSentimentScore?: number;
+  finalSentimentScore?: number;
+  initialTemperament?: string;
+  finalTemperament?: string;
+  deEscalationOutcome?: string;
+  deEscalationNotes?: string;
 }
 
 let savedCandidates: CandidateRecord[] = [
@@ -66,7 +73,87 @@ let savedCandidates: CandidateRecord[] = [
     sessionDurationSeconds: 142,
     turnCount: 5,
     markersCount: 4,
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    initialSentimentScore: 28,
+    finalSentimentScore: 94,
+    initialTemperament: 'AGITATED_ANXIOUS',
+    finalTemperament: 'SATISFIED_GRATEFUL',
+    deEscalationOutcome: 'RESOLVED_AND_CALMED',
+    deEscalationNotes: 'Customer opened with severe panic over an unauthorized charge ahead of rent. Candidate validated distress immediately, blocked recurring billing, and issued instant provisional credit (+66% sentiment swing).',
+    transcript: [
+      {
+        id: 'msg_s1_1',
+        speaker: 'AI Customer',
+        text: "I was looking at my mobile banking app twenty minutes ago and saw a pending $45.00 charge from 'CloudStream Pro'. I didn't authorize this! My rent check is scheduled to clear tomorrow morning and this is going to overdraw my checking account. I need this refunded immediately!",
+        timestamp: Date.now() - 3600000 * 5 + 2000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s1_2',
+        speaker: 'Candidate',
+        text: "I completely understand how stressful unexpected charges are, especially right before an important rent payment. Let's get this resolved right now. I have your account in front of me and I can issue an immediate provisional credit while we investigate the merchant.",
+        timestamp: Date.now() - 3600000 * 5 + 14000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s1_1',
+            markerType: 'ACTIVE_LISTENING',
+            candidateQuote: 'I completely understand how stressful unexpected charges are, especially right before an important rent payment.',
+            impact: 'POSITIVE',
+            coachingNote: 'Superb empathetic validation addressing both the emotional trigger and practical impact.',
+            timestamp: Date.now() - 3600000 * 5 + 14000
+          }
+        ]
+      },
+      {
+        id: 'msg_s1_3',
+        speaker: 'AI Customer',
+        text: "Thank you. Will this merchant be able to charge my card again next month? I've never even signed up with CloudStream Pro.",
+        timestamp: Date.now() - 3600000 * 5 + 25000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s1_4',
+        speaker: 'Candidate',
+        text: "Not at all. I have placed an active recurring token block on CloudStream Pro so any future settlement attempts will be automatically declined, and your card details remain completely secure.",
+        timestamp: Date.now() - 3600000 * 5 + 42000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s1_2',
+            markerType: 'DOMAIN_VOCABULARY',
+            candidateQuote: 'active recurring token block on CloudStream Pro so any future settlement attempts will be automatically declined',
+            impact: 'POSITIVE',
+            coachingNote: 'Precise financial domain terminology delivered with reassuring clarity.',
+            timestamp: Date.now() - 3600000 * 5 + 42000
+          }
+        ]
+      },
+      {
+        id: 'msg_s1_5',
+        speaker: 'AI Customer',
+        text: "That is a huge relief. What is my reference number for this dispute?",
+        timestamp: Date.now() - 3600000 * 5 + 56000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s1_6',
+        speaker: 'Candidate',
+        text: "Your official dispute case number is APX-99421. The $45.00 provisional credit is already reflected in your available balance, so your rent payment will process smoothly tomorrow morning.",
+        timestamp: Date.now() - 3600000 * 5 + 75000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s1_3',
+            markerType: 'DE_ESCALATION',
+            candidateQuote: 'The $45.00 provisional credit is already reflected in your available balance, so your rent payment will process smoothly',
+            impact: 'POSITIVE',
+            coachingNote: 'Proactive closure linking directly back to the customer initial anxiety point.',
+            timestamp: Date.now() - 3600000 * 5 + 75000
+          }
+        ]
+      }
+    ]
   },
   {
     id: 'sc_seed_102',
@@ -94,7 +181,63 @@ let savedCandidates: CandidateRecord[] = [
     sessionDurationSeconds: 165,
     turnCount: 4,
     markersCount: 3,
-    createdAt: new Date(Date.now() - 3600000 * 22).toISOString()
+    createdAt: new Date(Date.now() - 3600000 * 22).toISOString(),
+    initialSentimentScore: 35,
+    finalSentimentScore: 82,
+    initialTemperament: 'AGITATED_ANXIOUS',
+    finalTemperament: 'SATISFIED_GRATEFUL',
+    deEscalationOutcome: 'RESOLVED_AND_CALMED',
+    deEscalationNotes: 'Customer was under severe pressure with an executive board presentation pending. Candidate calmly diagnosed the ONT telemetry and offered 5G backup (+47% sentiment swing).',
+    transcript: [
+      {
+        id: 'msg_s2_1',
+        speaker: 'AI Customer',
+        text: "Hello! Our office fiber connection completely dropped five minutes ago, and we have a quarterly board presentation streaming in ten minutes! We have twelve executives in this boardroom. Can you tell me what happened to our link?",
+        timestamp: Date.now() - 3600000 * 22 + 3000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s2_2',
+        speaker: 'Candidate',
+        text: "Hello, I understand this is urgent with your board meeting approaching. I am checking the optical network terminal telemetry right now and see a signal attenuation fault at the street cabinet.",
+        timestamp: Date.now() - 3600000 * 22 + 18000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s2_1',
+            markerType: 'DOMAIN_VOCABULARY',
+            candidateQuote: 'optical network terminal telemetry right now and see a signal attenuation fault',
+            impact: 'POSITIVE',
+            coachingNote: 'Correct technical vocabulary identifying terminal metrics.',
+            timestamp: Date.now() - 3600000 * 22 + 18000
+          }
+        ]
+      },
+      {
+        id: 'msg_s2_3',
+        speaker: 'AI Customer',
+        text: "How quickly can you dispatch someone? We can't wait hours!",
+        timestamp: Date.now() - 3600000 * 22 + 32000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s2_4',
+        speaker: 'Candidate',
+        text: "While I dispatch the line technician, I have remotely engaged your enterprise router 5G cellular backup gateway so your boardroom link is back online right now.",
+        timestamp: Date.now() - 3600000 * 22 + 51000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s2_2',
+            markerType: 'SOLUTION_OFFERING',
+            candidateQuote: 'remotely engaged your enterprise router 5G cellular backup gateway',
+            impact: 'POSITIVE',
+            coachingNote: 'Immediate secondary mitigation minimizing downtime for the customer.',
+            timestamp: Date.now() - 3600000 * 22 + 51000
+          }
+        ]
+      }
+    ]
   },
   {
     id: 'sc_seed_103',
@@ -122,7 +265,57 @@ let savedCandidates: CandidateRecord[] = [
     sessionDurationSeconds: 118,
     turnCount: 4,
     markersCount: 5,
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    transcript: [
+      {
+        id: 'msg_s3_1',
+        speaker: 'AI Customer',
+        text: "I placed an order three days ago for custom engraved headphones for my daughter's 16th birthday party tomorrow evening. The tracking status just updated to 'Delivered' but nothing was left at my front door! I am in tears right now.",
+        timestamp: Date.now() - 3600000 * 48 + 2000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s3_2',
+        speaker: 'Candidate',
+        text: "Please take a deep breath. A 16th birthday is a milestone moment, and I will personally make sure she has her gift tomorrow. Let me arrange an expedited replacement from our local distribution hub immediately.",
+        timestamp: Date.now() - 3600000 * 48 + 16000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s3_1',
+            markerType: 'ACTIVE_LISTENING',
+            candidateQuote: 'A 16th birthday is a milestone moment, and I will personally make sure she has her gift tomorrow.',
+            impact: 'POSITIVE',
+            coachingNote: 'Exceptional emotional resonance validating parental priority with personal ownership.',
+            timestamp: Date.now() - 3600000 * 48 + 16000
+          }
+        ]
+      },
+      {
+        id: 'msg_s3_3',
+        speaker: 'AI Customer',
+        text: "Will it really arrive in time? Her party starts at 5:00 PM.",
+        timestamp: Date.now() - 3600000 * 48 + 29000,
+        isFinal: true
+      },
+      {
+        id: 'msg_s3_4',
+        speaker: 'Candidate',
+        text: "Yes, I have routed the priority order via morning courier with a guaranteed delivery slot before 1:00 PM tomorrow, with all rush fees complimentary.",
+        timestamp: Date.now() - 3600000 * 48 + 48000,
+        isFinal: true,
+        markers: [
+          {
+            id: 'm_s3_2',
+            markerType: 'SOLUTION_OFFERING',
+            candidateQuote: 'guaranteed delivery slot before 1:00 PM tomorrow, with all rush fees complimentary',
+            impact: 'POSITIVE',
+            coachingNote: 'Decisive, generous resolution exceeding customer service thresholds.',
+            timestamp: Date.now() - 3600000 * 48 + 48000
+          }
+        ]
+      }
+    ]
   }
 ];
 
@@ -478,9 +671,36 @@ wss.on('connection', (ws: WebSocket) => {
         if (activeSession && data.data) {
           activeSession.handleClientAudioChunk(data.data);
         }
-      } else if (type === 'candidate_text') {
-        if (activeSession && data.text) {
-          activeSession.handleClientText(data.text);
+      } else if (type === 'candidate_text' || type === 'candidate_speech') {
+        const text = (data.text || '').trim();
+        if (activeSession && text) {
+          activeSession.handleClientText(text);
+        } else if (text) {
+          // Direct server response when in simulation mode or when activeSession is detached
+          const replyId = 'rep_' + Date.now();
+          ws.send(JSON.stringify({ type: 'reply_started', reply_id: replyId }));
+          setTimeout(() => {
+            let directReply = "Understood. Can you please confirm how long this dispute will take to fully resolve?";
+            if (data.scenario === 'fintech_dispute') {
+              directReply = "Alright, thank you for confirming. Will that provisional credit show up before tomorrow morning's rent check clears?";
+            } else if (data.scenario === 'telecom_technical') {
+              directReply = "Okay, our executive team is waiting. How many minutes until the 5G backup link activates?";
+            } else if (data.scenario === 'ecommerce_delivery') {
+              directReply = "I appreciate your help. Will the courier deliver the replacement parcel before 5:00 PM tomorrow?";
+            }
+
+            ws.send(JSON.stringify({
+              type: 'transcript_final',
+              speaker: 'AI Customer',
+              text: directReply,
+              reply_id: replyId
+            }));
+
+            ws.send(JSON.stringify({
+              type: 'reply_done',
+              reply_id: replyId
+            }));
+          }, 800);
         }
       } else if (type === 'stop_interview') {
         console.log('[WS] Candidate requested stop interview.');

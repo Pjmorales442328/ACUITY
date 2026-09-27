@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useMemo } from 'react';
-import { MessageSquare, Volume2, Bot, User, CheckCircle2, AlertCircle, Mic, Loader2 } from 'lucide-react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
+import { MessageSquare, Volume2, Bot, User, CheckCircle2, AlertCircle, Mic, Loader2, Copy, Check, Download } from 'lucide-react';
 import { TranscriptMessage } from '../types';
 import { cleanAndDeduplicateTranscript } from '../utils/transcriptDeduplicator';
 
@@ -23,6 +23,7 @@ export const TranscriptFeed: React.FC<TranscriptFeedProps> = ({
   hideAnnotations
 }) => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const displayTranscript = useMemo(() => {
     return cleanAndDeduplicateTranscript(transcript);
@@ -34,6 +35,34 @@ export const TranscriptFeed: React.FC<TranscriptFeedProps> = ({
     }
   }, [displayTranscript, interimTranscript, isTranscribingAudio]);
 
+  const handleCopyAll = () => {
+    if (displayTranscript.length === 0) return;
+    let txt = `AcuityVoice Roleplay Transcript\nCandidate: ${candidateName}\nTimestamp: ${new Date().toLocaleString()}\n\n`;
+    displayTranscript.forEach(msg => {
+      txt += `[${msg.speaker}] ${msg.text}\n`;
+    });
+    navigator.clipboard.writeText(txt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const handleExportTxt = () => {
+    if (displayTranscript.length === 0) return;
+    let txt = `AcuityVoice Roleplay Transcript\nCandidate: ${candidateName}\nTimestamp: ${new Date().toLocaleString()}\n\n`;
+    displayTranscript.forEach(msg => {
+      txt += `[${msg.speaker} - ${new Date(msg.timestamp).toISOString().split('T')[1].slice(0, 8)}]\n`;
+      txt += `${msg.text}\n\n`;
+    });
+    const dataStr = 'data:text/plain;charset=utf-8,' + encodeURIComponent(txt);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `transcript_${candidateName.replace(/\s+/g, '_')}_${Date.now()}.txt`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col flex-1 min-h-[380px] shadow-2xs">
       {/* Header */}
@@ -42,9 +71,31 @@ export const TranscriptFeed: React.FC<TranscriptFeedProps> = ({
           <MessageSquare className="w-4 h-4 text-blue-600" />
           <h3 className="text-xs font-bold text-slate-900">Roleplay Live Dialogue Stream</h3>
         </div>
-        <span className="text-[10px] text-slate-500 font-mono">
-          Bi-Directional Audio & VAD Log
-        </span>
+        <div className="flex items-center gap-2">
+          {displayTranscript.length > 0 && (
+            <>
+              <button
+                onClick={handleCopyAll}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold transition cursor-pointer"
+                title="Copy entire transcript to clipboard"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                <span>{copied ? 'Copied' : 'Copy'}</span>
+              </button>
+              <button
+                onClick={handleExportTxt}
+                className="flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-semibold transition cursor-pointer"
+                title="Download transcript as text file"
+              >
+                <Download className="w-3 h-3" />
+                <span>Export TXT</span>
+              </button>
+            </>
+          )}
+          <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
+            Bi-Directional Audio & VAD Log
+          </span>
+        </div>
       </div>
 
       {/* Messages Scroll Area */}

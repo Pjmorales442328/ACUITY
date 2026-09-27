@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { AudioWaveform } from './components/AudioWaveform';
 import { RadarChart } from './components/RadarChart';
-import { TemperamentGauge } from './components/TemperamentGauge';
 import { MarkersFeed } from './components/MarkersFeed';
 import { TranscriptFeed } from './components/TranscriptFeed';
 import { CandidateControls } from './components/CandidateControls';
@@ -12,9 +11,10 @@ import { CandidateHistoryView } from './components/CandidateHistoryView';
 import { ScenarioStudioView } from './components/ScenarioStudioView';
 import { ArchitectureDeckView } from './components/ArchitectureDeckView';
 import { CandidateProfileCard } from './components/CandidateProfileCard';
-import { ScreeningGuideBanner } from './components/ScreeningGuideBanner';
+import { GuideModal } from './components/GuideModal';
 import { DEFAULT_SCENARIOS } from './data/scenarios';
 import { buildCompleteScorecard } from './utils/scoringEngine';
+import { HelpCircle, FileCheck, ArrowRight, Award, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { cleanAndDeduplicateTranscript } from './utils/transcriptDeduplicator';
 import {
   ActiveTab,
@@ -103,6 +103,8 @@ export function App() {
   // Scorecards & Candidates
   const [activeScorecard, setActiveScorecard] = useState<Scorecard | null>(null);
   const [isScorecardModalOpen, setIsScorecardModalOpen] = useState<boolean>(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState<boolean>(false);
+  const [scorecardModalViewMode, setScorecardModalViewMode] = useState<'SCORECARD' | 'TRANSCRIPT'>('SCORECARD');
   const [isBriefModalOpen, setIsBriefModalOpen] = useState<boolean>(false);
   const [candidateHistory, setCandidateHistory] = useState<Scorecard[]>([]);
 
@@ -120,6 +122,8 @@ export function App() {
   const processorNodeRef = useRef<ScriptProcessorNode | null>(null);
   const activeAudioSourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const nextScheduledPlayTimeRef = useRef<number>(0);
+  const customerWatchdogTimerRef = useRef<any>(null);
+  const isCallActiveRef = useRef<boolean>(false);
 
   // Echo Gate & Ducking Protection against audio loops
   const [echoGateEnabled, setEchoGateEnabled] = useState<boolean>(true);
@@ -130,6 +134,10 @@ export function App() {
   const lastCustomerSpeechEndRef = useRef<number>(0);
   const lastUserSpeechTimeRef = useRef<number>(0);
   const lastAudioPacketSentTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    isCallActiveRef.current = isCallActive;
+  }, [isCallActive]);
 
   // Fetch initial candidates from server
   useEffect(() => {
@@ -401,9 +409,14 @@ export function App() {
       sessionDurationSeconds: elapsedSeconds || 85,
       turnCount: currentTurnIndex + 1,
       markersCount: markers.length,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      transcript: transcript.map(t => ({
+        ...t,
+        markers: markers.filter(m => Math.abs(m.timestamp - t.timestamp) < 5000)
+      }))
     };
     setActiveScorecard(finalScorecard);
+    setScorecardModalViewMode('SCORECARD');
     setIsScorecardModalOpen(true);
     setCandidateHistory(prev => [finalScorecard, ...prev.filter(c => c.id !== finalScorecard.id)]);
     fetch('/api/candidates', {
@@ -560,6 +573,14 @@ export function App() {
         const data = JSON.parse(event.data);
         const type = data.type;
 
+        // Clear fallback watchdog on any active server reply activity
+        if (type === 'reply_started' || type === 'transcript_delta' || type === 'transcript_final' || type === 'audio_chunk' || type === 'reply_done') {
+          if (customerWatchdogTimerRef.current) {
+            clearTimeout(customerWatchdogTimerRef.current);
+            customerWatchdogTimerRef.current = null;
+          }
+        }
+
         if (type === 'session_connected') {
           const sysMsg: TranscriptMessage = {
             id: 'sys_' + Date.now(),
@@ -605,14 +626,13 @@ export function App() {
                 return cleanAndDeduplicateTranscript(updated);
               }
 
-              // 2. By unfinalized recent AI customer message
-              const lastAiIdx = prev.findLastIndex(m => m.speaker === 'AI Customer');
-              if (lastAiIdx !== -1 && !prev[lastAiIdx].isFinal) {
-                const existing = prev[lastAiIdx];
-                const glue = (existing.text && !existing.text.endsWith(' ') && !delta.startsWith(' ') && !/^[,.!?:;]/.test(delta)) ? ' ' : '';
-                const newText = (existing.text + glue + delta).trim();
+              // 2. By unfinalized recent AI customer message directly at end of feed
+              const lastMsg = prev[prev.length - 1];
+              if (lastMsg && lastMsg.speaker === 'AI Customer' && !lastMsg.isFinal) {
+                const glue = (lastMsg.text && !lastMsg.text.endsWith(' ') && !delta.startsWith(' ') && !/^[,.!?:;]/.test(delta)) ? ' ' : '';
+                const newText = (lastMsg.text + glue + delta).trim();
                 const updated = [...prev];
-                updated[lastAiIdx] = { ...existing, id: targetId, text: newText, isFinal: false };
+                updated[prev.length - 1] = { ...lastMsg, id: targetId, text: newText, isFinal: false };
                 return cleanAndDeduplicateTranscript(updated);
               }
 
@@ -620,7 +640,7 @@ export function App() {
               const newMsg: TranscriptMessage = {
                 id: targetId,
                 speaker: 'AI Customer',
-                text: delta,
+                text: delta || text,
                 timestamp: Date.now(),
                 isFinal: false
               };
@@ -645,47 +665,20 @@ export function App() {
 
                 // 1. Exact ID match for this customer turn
                 if (existingIdx !== -1) {
-                  const existing = prev[existingIdx];
-                  const existingNorm = existing.text.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '');
-                  const newNorm = text.toLowerCase().replace(/[^a-z0-9 ]/g, '');
-
-                  let finalText = text;
-                  if (existingNorm.includes(newNorm) && existing.text.length > text.length) {
-                    finalText = existing.text;
-                  } else if (!newNorm.includes(existingNorm) && !existingNorm.includes(newNorm) && existing.text.length > 0) {
-                    finalText = `${existing.text} ${text}`;
-                  }
-
                   const updated = [...prev];
-                  updated[existingIdx] = { ...existing, text: finalText, isFinal: true };
+                  updated[existingIdx] = { ...updated[existingIdx], text, isFinal: true };
                   return cleanAndDeduplicateTranscript(updated);
                 }
 
-                // 2. Check latest AI customer message
-                const lastAiIdx = prev.findLastIndex(m => m.speaker === 'AI Customer');
-                if (lastAiIdx !== -1) {
-                  const lastAi = prev[lastAiIdx];
-                  const lastAiNorm = lastAi.text.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '');
-                  const newNorm = text.toLowerCase().replace(/[^a-z0-9 ]/g, '');
-                  const timeDiff = Math.abs(Date.now() - lastAi.timestamp);
-
-                  if (!lastAi.isFinal || lastAiNorm.includes(newNorm) || newNorm.includes(lastAiNorm) || timeDiff < 8000) {
-                    let finalText = text;
-                    if (lastAiNorm.includes(newNorm) && lastAi.text.length > text.length) {
-                      finalText = lastAi.text;
-                    } else if (newNorm.includes(lastAiNorm)) {
-                      finalText = text;
-                    } else if (!lastAi.isFinal) {
-                      finalText = `${lastAi.text} ${text}`;
-                    }
-
-                    const updated = [...prev];
-                    updated[lastAiIdx] = { ...lastAi, id: targetId, text: finalText, isFinal: true };
-                    return cleanAndDeduplicateTranscript(updated);
-                  }
+                // 2. Check if the last message in transcript is an unfinalized customer message
+                const lastMsg = prev[prev.length - 1];
+                if (lastMsg && lastMsg.speaker === 'AI Customer' && !lastMsg.isFinal) {
+                  const updated = [...prev];
+                  updated[prev.length - 1] = { ...lastMsg, id: targetId, text, isFinal: true };
+                  return cleanAndDeduplicateTranscript(updated);
                 }
 
-                // 3. New message if truly distinct
+                // 3. Brand new customer turn
                 const newMsg: TranscriptMessage = {
                   id: targetId,
                   speaker: 'AI Customer',
@@ -699,17 +692,16 @@ export function App() {
               // Candidate deduplication
               if (speaker === 'Candidate') {
                 const targetId = 'msg_cand_' + (data.item_id || Date.now());
-                const lastCandIdx = prev.findLastIndex(m => m.speaker === 'Candidate');
-                if (lastCandIdx !== -1) {
-                  const lastCand = prev[lastCandIdx];
-                  const timeDiff = Math.abs(Date.now() - lastCand.timestamp);
-                  const candTextClean = lastCand.text.trim().toLowerCase();
-                  const newTextClean = text.toLowerCase();
-                  if (timeDiff < 15000 && (candTextClean === newTextClean || candTextClean.includes(newTextClean) || newTextClean.includes(candTextClean))) {
-                    const updated = [...prev];
-                    updated[lastCandIdx] = { ...lastCand, text: text.length >= lastCand.text.length ? text : lastCand.text, isFinal: true };
-                    return cleanAndDeduplicateTranscript(updated);
-                  }
+                const lastMsg = prev[prev.length - 1];
+
+                if (lastMsg && lastMsg.speaker === 'Candidate') {
+                  const updated = [...prev];
+                  updated[prev.length - 1] = {
+                    ...lastMsg,
+                    text: text.length >= lastMsg.text.length ? text : lastMsg.text,
+                    isFinal: true
+                  };
+                  return cleanAndDeduplicateTranscript(updated);
                 }
 
                 return cleanAndDeduplicateTranscript([
@@ -1027,6 +1019,52 @@ export function App() {
     setMarkers(prev => [interruptMarker, ...prev]);
   };
 
+  // Fallback Customer Turn if WebSocket/voice connection drops or delays
+  const triggerFallbackCustomerTurn = async (candText: string) => {
+    if (!isCallActiveRef.current) return;
+    try {
+      setStatusText('Evaluating turn • Generating customer response...');
+      const nextTurnIdx = currentTurnIndex + 1;
+      setCurrentTurnIndex(nextTurnIdx);
+
+      const res = await fetch('/api/ai/evaluate-turn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          candidateQuote: candText,
+          customerStatement: transcript.findLast(m => m.speaker === 'AI Customer')?.text || '',
+          scenarioTitle: activeScenario.title,
+          currentScores: radarScores,
+          turnIndex: nextTurnIdx
+        })
+      });
+
+      let evaluationResult: any = null;
+      if (res.ok) {
+        evaluationResult = await res.json();
+      }
+
+      const scriptedTurn = activeScenario.scriptedTurns[nextTurnIdx];
+      const replyText =
+        evaluationResult?.customerResponse ||
+        scriptedTurn?.customerText ||
+        "I understand, thank you for clarifying that for me. Could you please confirm what the next step is?";
+
+      const customerMsg: TranscriptMessage = {
+        id: 'msg_ai_wd_' + Date.now(),
+        speaker: 'AI Customer',
+        text: replyText,
+        timestamp: Date.now(),
+        isFinal: true
+      };
+
+      setTranscript(prev => cleanAndDeduplicateTranscript([...prev, customerMsg]));
+      speakText(replyText);
+    } catch (e) {
+      console.warn('Fallback turn error:', e);
+    }
+  };
+
   // Candidate Spoken Turn Processing
   const handleCandidateTurn = async (candidateText: string) => {
     if (!isCallActive) return;
@@ -1051,6 +1089,16 @@ export function App() {
           text: candidateText
         }));
       }
+
+      // Responsive customer response watchdog (4s fallback)
+      if (customerWatchdogTimerRef.current) clearTimeout(customerWatchdogTimerRef.current);
+      customerWatchdogTimerRef.current = setTimeout(async () => {
+        if (!isAiSpeakingRef.current && isCallActiveRef.current) {
+          console.warn('[Watchdog] AI customer response delay detected; delivering responsive turn');
+          await triggerFallbackCustomerTurn(candidateText);
+        }
+      }, 4000);
+
       return;
     }
 
@@ -1220,7 +1268,14 @@ export function App() {
       radarScores,
       elapsedSeconds || 85,
       currentTurnIndex + 1,
-      markers.length || 3
+      markers.length || 3,
+      {
+        initialSentiment: activeScenario.initialSentiment,
+        finalSentiment: sentimentScore,
+        initialTemperament: activeScenario.initialTemperament,
+        finalTemperament: currentTemperament,
+        triggerReason: temperamentReason
+      }
     );
     
     // Attach the transcript and markers to the scorecard for the report
@@ -1302,12 +1357,20 @@ export function App() {
         {/* Tab 1: Live Voice Screening Dashboard */}
         {activeTab === 'SCREENING' && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Interactive Onboarding & Neural Voice Selection Guide */}
-            <ScreeningGuideBanner
-              selectedVoice={selectedVoice}
-              setSelectedVoice={setSelectedVoice}
-              appMode={appMode}
-            />
+            {/* Page Header & Info Guide Button */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-lg font-bold text-white tracking-tight">Active Assessment</h1>
+                <p className="text-xs text-slate-400 mt-1">Configure candidate details and start the live AI roleplay simulation.</p>
+              </div>
+              <button 
+                onClick={() => setIsGuideModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-lg shadow-sm border border-slate-700 transition cursor-pointer"
+              >
+                <HelpCircle className="w-4 h-4 text-blue-400" />
+                How it works
+              </button>
+            </div>
 
             {/* Candidate Profile Bar */}
             <CandidateProfileCard
@@ -1358,7 +1421,14 @@ export function App() {
                   quickPrompts={getQuickPrompts()}
                   isMicListening={isMicListening}
                   onToggleMic={handleToggleMic}
-                  onViewScorecard={() => activeScorecard && setIsScorecardModalOpen(true)}
+                  onViewScorecard={() => {
+                    setScorecardModalViewMode('SCORECARD');
+                    if (activeScorecard) setIsScorecardModalOpen(true);
+                  }}
+                  onViewTranscript={() => {
+                    setScorecardModalViewMode('TRANSCRIPT');
+                    if (activeScorecard) setIsScorecardModalOpen(true);
+                  }}
                   hasScorecard={Boolean(activeScorecard)}
                   interimTranscript={interimTranscript}
                   isTranscribing={isTranscribingAudio}
@@ -1371,55 +1441,133 @@ export function App() {
                 />
               </div>
 
-              {/* Right Column: CEFR Radar, Emotion Thermometer, Linguistic Markers (5 cols) */}
+              {/* Right Column: Active Call Context or Post-Call / Scenario Readiness (5 cols) */}
               <div className="lg:col-span-5 flex flex-col gap-4">
                 {isCallActive ? (
-                  <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
-                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">Active Call Context</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Customer Profile</span>
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                          <span className="text-sm font-semibold text-slate-900 block mb-1">
-                            {activeScenario.customerPersona.split(',')[0].replace('You are ', '')}
-                          </span>
-                          <span className="text-xs text-slate-600 block">{activeScenario.category} Department</span>
-                        </div>
+                  <>
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
+                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Live Call Context</h3>
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Live Audio On
+                        </span>
                       </div>
-
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Situation Overview</span>
-                        <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100/50 text-xs text-slate-700 leading-relaxed">
-                          {activeScenario.description}
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Customer Profile</span>
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span className="text-sm font-semibold text-slate-900 block mb-0.5">
+                              {activeScenario.customerPersona.split(',')[0].replace('You are ', '')}
+                            </span>
+                            <span className="text-xs text-slate-600 block">{activeScenario.category} Department</span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Evaluation Criteria</span>
-                        <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                          <li>Display strong active listening and professional empathy.</li>
-                          <li>Follow logical troubleshooting/verification steps.</li>
-                          <li>Maintain a calm, professional temperament to de-escalate.</li>
-                          <li>Keep responses concise to allow natural turn-taking.</li>
-                        </ul>
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Situation Overview</span>
+                          <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100/50 text-xs text-slate-700 leading-relaxed">
+                            {activeScenario.description}
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Evaluation Objectives</span>
+                          <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <li>Acknowledge customer distress promptly with active empathy.</li>
+                            <li>Follow clear troubleshooting and policy verification steps.</li>
+                            <li>Reassure caller with structured de-escalation statements.</li>
+                            <li>Deliver clean pronunciation and concise conversational pacing.</li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
-                  </div>
+
+                    {/* AI Linguistic Tool Calling Events Feed during live speech */}
+                    <MarkersFeed markers={markers} />
+                  </>
                 ) : (
                   <>
-                    {/* Real-time CEFR Radar Chart */}
+                    {/* If a scorecard exists from a completed call, show Quick Access to full report */}
+                    {activeScorecard && (
+                      <div className="bg-white border border-blue-200 rounded-xl p-4 shadow-2xs">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <FileCheck className="w-4 h-4 text-blue-600" />
+                            <h3 className="text-xs font-bold text-slate-900">Latest Evaluation Report</h3>
+                          </div>
+                          <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            Level {activeScorecard.overallCefrLevel}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mb-3">
+                          Assessment for <span className="font-semibold text-slate-800">{activeScorecard.candidateName}</span> is finalized, including comprehensive customer sentiment & de-escalation outcome metrics.
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setScorecardModalViewMode('SCORECARD');
+                              setIsScorecardModalOpen(true);
+                            }}
+                            className="flex-1 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                          >
+                            <Award className="w-3.5 h-3.5" />
+                            <span>View Scorecard & De-escalation</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Roleplay Scenario Brief & Evaluation Readiness */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+                      <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-3">
+                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          Scenario Brief & Objectives
+                        </h3>
+                        <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {activeScenario.category}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                            Caller & Context
+                          </span>
+                          <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs text-slate-700 leading-relaxed">
+                            {activeScenario.description}
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                            Assessment Standards
+                          </span>
+                          <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                            <div className="flex items-center gap-1.5 bg-slate-50 p-2 rounded border border-slate-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Active Listening</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 bg-slate-50 p-2 rounded border border-slate-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>De-escalation</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 bg-slate-50 p-2 rounded border border-slate-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Lexical Range</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 bg-slate-50 p-2 rounded border border-slate-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Syntactic Clarity</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CEFR Benchmark Radar Chart */}
                     <RadarChart scores={radarScores} />
-
-                    {/* Real-time Customer Temperament */}
-                    <TemperamentGauge
-                      temperament={currentTemperament}
-                      sentimentScore={sentimentScore}
-                      triggerReason={temperamentReason}
-                    />
-
-                    {/* AI Linguistic Tool Calling Events Feed */}
-                    <MarkersFeed markers={markers} />
                   </>
                 )}
               </div>
@@ -1432,6 +1580,12 @@ export function App() {
           <CandidateHistoryView
             candidates={candidateHistory}
             onSelectCandidate={(sc) => {
+              setScorecardModalViewMode('SCORECARD');
+              setActiveScorecard(sc);
+              setIsScorecardModalOpen(true);
+            }}
+            onViewCandidateTranscript={(sc) => {
+              setScorecardModalViewMode('TRANSCRIPT');
               setActiveScorecard(sc);
               setIsScorecardModalOpen(true);
             }}
@@ -1464,6 +1618,7 @@ export function App() {
       {isScorecardModalOpen && activeScorecard && (
         <ScorecardModal
           scorecard={activeScorecard}
+          initialViewMode={scorecardModalViewMode}
           onClose={() => setIsScorecardModalOpen(false)}
         />
       )}
@@ -1480,6 +1635,15 @@ export function App() {
           onCancel={() => setIsBriefModalOpen(false)}
         />
       )}
+
+      {/* Guide / How-to Modal */}
+      <GuideModal
+        isOpen={isGuideModalOpen}
+        onClose={() => setIsGuideModalOpen(false)}
+        selectedVoice={selectedVoice}
+        setSelectedVoice={setSelectedVoice}
+        appMode={appMode}
+      />
     </div>
   );
 }

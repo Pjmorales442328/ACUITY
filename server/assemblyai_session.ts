@@ -341,6 +341,7 @@ export class AssemblyAIVoiceAgentSession {
   public handleClientAudioChunk(base64Data: string) {
     if (!this.assemblyWs || this.assemblyWs.readyState !== WebSocket.OPEN) return;
     try {
+      this.lastAgentFinalText = '';
       this.assemblyWs.send(
         JSON.stringify({
           type: 'input.audio',
@@ -355,6 +356,7 @@ export class AssemblyAIVoiceAgentSession {
   public handleClientBinaryAudio(buffer: Buffer) {
     if (!this.assemblyWs || this.assemblyWs.readyState !== WebSocket.OPEN) return;
     try {
+      this.lastAgentFinalText = '';
       this.assemblyWs.send(
         JSON.stringify({
           type: 'input.audio',
@@ -367,51 +369,109 @@ export class AssemblyAIVoiceAgentSession {
   }
 
   public async handleClientText(text: string) {
-    if (!this.assemblyWs || this.assemblyWs.readyState !== WebSocket.OPEN || !text?.trim()) return;
-    try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (apiKey) {
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.1-flash-tts-preview',
-          contents: [{ parts: [{ text: text.trim() }] }],
-          config: {
-            responseModalities: [Modality.AUDIO],
-            speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+    if (!text?.trim()) return;
+    this.lastAgentFinalText = '';
+    const cleanText = text.trim();
+
+    let fedToAssembly = false;
+    if (this.assemblyWs && this.assemblyWs.readyState === WebSocket.OPEN) {
+      try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (apiKey) {
+          const ai = new GoogleGenAI({ apiKey });
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.1-flash-tts-preview',
+            contents: [{ parts: [{ text: cleanText }] }],
+            config: {
+              responseModalities: [Modality.AUDIO],
+              speechConfig: {
+                voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+              }
             }
-          }
-        });
-        const audioBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (audioBase64) {
-          const audioBuf = Buffer.from(audioBase64, 'base64');
-          const chunkSize = 4800; // 100ms at 24kHz 16-bit PCM
-          for (let offset = 0; offset < audioBuf.length; offset += chunkSize) {
-            const chunk = audioBuf.subarray(offset, Math.min(offset + chunkSize, audioBuf.length));
-            this.assemblyWs.send(
-              JSON.stringify({
-                type: 'input.audio',
-                audio: chunk.toString('base64')
-              })
-            );
-            await new Promise(r => setTimeout(r, 45));
-          }
-          // Send trailing silence frames so VAD immediately stops speech and Jordan replies in < 1 second!
-          const silenceChunk = Buffer.alloc(chunkSize);
-          for (let i = 0; i < 6; i++) {
-            this.assemblyWs.send(
-              JSON.stringify({
-                type: 'input.audio',
-                audio: silenceChunk.toString('base64')
-              })
-            );
-            await new Promise(r => setTimeout(r, 45));
+          });
+          const audioBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+          if (audioBase64 && this.assemblyWs && this.assemblyWs.readyState === WebSocket.OPEN) {
+            const audioBuf = Buffer.from(audioBase64, 'base64');
+            const chunkSize = 4800; // 100ms at 24kHz 16-bit PCM
+            for (let offset = 0; offset < audioBuf.length; offset += chunkSize) {
+              const chunk = audioBuf.subarray(offset, Math.min(offset + chunkSize, audioBuf.length));
+              this.assemblyWs.send(
+                JSON.stringify({
+                  type: 'input.audio',
+                  audio: chunk.toString('base64')
+                })
+              );
+              await new Promise(r => setTimeout(r, 45));
+            }
+            // Send trailing silence frames so VAD immediately stops speech and Jordan replies in < 1 second!
+            const silenceChunk = Buffer.alloc(chunkSize);
+            for (let i = 0; i < 6; i++) {
+              if (this.assemblyWs && this.assemblyWs.readyState === WebSocket.OPEN) {
+                this.assemblyWs.send(
+                  JSON.stringify({
+                    type: 'input.audio',
+                    audio: silenceChunk.toString('base64')
+                  })
+                );
+                await new Promise(r => setTimeout(r, 45));
+              }
+            }
+            fedToAssembly = true;
           }
         }
+      } catch (e) {
+        console.warn('[AssemblyAI Session] Error synthesizing candidate text to speech:', e);
       }
-    } catch (e) {
-      console.warn('[AssemblyAI Session] Error synthesizing candidate text to speech:', e);
+
+      // If audio wasn't fed, try text input
+      if (!fedToAssembly && this.assemblyWs && this.assemblyWs.readyState === WebSocket.OPEN) {
+        try {
+          this.assemblyWs.send(
+            JSON.stringify({
+              type: 'input.text',
+              text: cleanText
+            })
+          );
+          fedToAssembly = true;
+        } catch (e) {}
+      }
     }
+
+    // Customer turn watchdog: If AssemblyAI does not begin responding within 3.5s, generate prompt reply
+    setTimeout(() => {
+      if (this.isRunning && !this.currentReplyId && this.clientWs.readyState === WebSocket.OPEN) {
+        console.log('[AssemblyAI Session] Customer watchdog triggered: dispatching fallback turn.');
+        const fallbackReplyId = 'rep_' + Date.now();
+        this.currentReplyId = fallbackReplyId;
+        this.safeSendToClient({
+          type: 'reply_started',
+          reply_id: fallbackReplyId
+        });
+
+        let fallbackMsg = "I understand what you're saying, but I need to make sure this is confirmed right now. Can you clarify the exact next step?";
+        if (this.scenarioKey === 'fintech_dispute') {
+          fallbackMsg = "Okay, I appreciate you explaining that. Will the $45.00 credit be available before my rent payment clears tomorrow morning?";
+        } else if (this.scenarioKey === 'telecom_technical') {
+          fallbackMsg = "Alright, our executives are already seated in the boardroom. How quickly will that backup connection take over?";
+        } else if (this.scenarioKey === 'ecommerce_delivery') {
+          fallbackMsg = "Thank you. Is there a tracking number for the replacement gift so I can verify delivery before tomorrow afternoon?";
+        }
+
+        this.safeSendToClient({
+          type: 'transcript_final',
+          speaker: 'AI Customer',
+          text: fallbackMsg,
+          reply_id: fallbackReplyId
+        });
+
+        this.safeSendToClient({
+          type: 'reply_done',
+          reply_id: fallbackReplyId
+        });
+
+        this.currentReplyId = null;
+      }
+    }, 3500);
   }
 
   public stop() {

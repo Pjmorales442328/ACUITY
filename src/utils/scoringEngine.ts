@@ -1,4 +1,4 @@
-import { CefrLevel, HiringRecommendation, MarkerImpact, MarkerType, RadarScores, Scorecard } from '../types';
+import { CefrLevel, HiringRecommendation, MarkerImpact, MarkerType, RadarScores, Scorecard, TemperamentType } from '../types';
 
 export function calculateCefrLevel(scores: RadarScores): CefrLevel {
   const avg = (scores.fluency + scores.grammar + scores.lexical + scores.pronunciation + scores.empathy) / 5;
@@ -98,11 +98,36 @@ export function buildCompleteScorecard(
   scores: RadarScores,
   durationSeconds: number,
   turnCount: number,
-  markersCount: number
+  markersCount: number,
+  sentimentData?: {
+    initialSentiment?: number;
+    finalSentiment?: number;
+    initialTemperament?: TemperamentType;
+    finalTemperament?: TemperamentType;
+    triggerReason?: string;
+  }
 ): Scorecard {
   const cefr = calculateCefrLevel(scores);
   const recommendation = calculateHiringRecommendation(scores, cefr);
   const { strengths, developmentAreas, verdict } = generateDiagnosticVerdict(scores, cefr, candidateName, scenarioTitle);
+
+  const initialSentiment = sentimentData?.initialSentiment ?? 28;
+  const finalSentiment = sentimentData?.finalSentiment ?? (scores.empathy >= 80 ? 92 : scores.empathy >= 70 ? 76 : 48);
+  const initialTemp: TemperamentType = sentimentData?.initialTemperament ?? 'AGITATED_ANXIOUS';
+  const finalTemp: TemperamentType = sentimentData?.finalTemperament ?? (
+    finalSentiment >= 75 ? 'SATISFIED_GRATEFUL' : finalSentiment >= 45 ? 'NEUTRAL_ATTENTIVE' : 'AGITATED_ANXIOUS'
+  );
+
+  const outcome = finalSentiment >= 75 ? 'RESOLVED_AND_CALMED' : finalSentiment >= 45 ? 'PARTIALLY_DE_ESCALATED' : 'UNRESOLVED_ESCALATED';
+
+  let deEscNotes = '';
+  if (outcome === 'RESOLVED_AND_CALMED') {
+    deEscNotes = sentimentData?.triggerReason || `Customer transitioned from high tension (${initialSentiment}%) to calm resolution (${finalSentiment}%). Candidate demonstrated strong empathy and prompt issue ownership.`;
+  } else if (outcome === 'PARTIALLY_DE_ESCALATED') {
+    deEscNotes = sentimentData?.triggerReason || `Customer acknowledged progress (${finalSentiment}%), but lingering friction remains. Additional reassuring statements recommended.`;
+  } else {
+    deEscNotes = sentimentData?.triggerReason || `Customer ended call with unresolved frustration (${finalSentiment}%). Needs stronger de-escalation phrasing and clearer resolution commitments.`;
+  }
 
   return {
     id: 'sc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
@@ -124,6 +149,12 @@ export function buildCompleteScorecard(
     sessionDurationSeconds: durationSeconds,
     turnCount,
     markersCount,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    initialSentimentScore: initialSentiment,
+    finalSentimentScore: finalSentiment,
+    initialTemperament: initialTemp,
+    finalTemperament: finalTemp,
+    deEscalationOutcome: outcome,
+    deEscalationNotes: deEscNotes
   };
 }

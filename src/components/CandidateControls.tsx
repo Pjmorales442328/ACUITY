@@ -8,7 +8,8 @@ import {
   Sparkles,
   Zap,
   FileCheck,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquareText
 } from 'lucide-react';
 
 interface CandidateControlsProps {
@@ -24,6 +25,7 @@ interface CandidateControlsProps {
   isMicListening: boolean;
   onToggleMic: () => void;
   onViewScorecard: () => void;
+  onViewTranscript?: () => void;
   hasScorecard: boolean;
   interimTranscript?: string;
   isTranscribing?: boolean;
@@ -44,6 +46,7 @@ export const CandidateControls: React.FC<CandidateControlsProps> = ({
   isMicListening,
   onToggleMic,
   onViewScorecard,
+  onViewTranscript,
   hasScorecard,
   interimTranscript,
   isTranscribing,
@@ -111,13 +114,25 @@ export const CandidateControls: React.FC<CandidateControlsProps> = ({
           )}
 
           {hasScorecard && !isCallActive && (
-            <button
-              onClick={onViewScorecard}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition border border-slate-300 shadow-2xs cursor-pointer"
-            >
-              <FileCheck className="w-3.5 h-3.5 text-blue-600" />
-              <span>Inspect CEFR Scorecard</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={onViewScorecard}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition border border-slate-300 shadow-2xs cursor-pointer"
+              >
+                <FileCheck className="w-3.5 h-3.5 text-blue-600" />
+                <span>Scorecard</span>
+              </button>
+              {onViewTranscript && (
+                <button
+                  onClick={onViewTranscript}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition border border-slate-300 shadow-2xs cursor-pointer"
+                  title="View conversation transcript and coaching annotations"
+                >
+                  <MessageSquareText className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Transcript</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
 

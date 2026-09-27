@@ -86,6 +86,13 @@ export interface Scorecard {
   markersCount: number;
   createdAt: string;
   transcript?: TranscriptMessage[];
+  // Customer Sentiment & De-escalation Audit Fields
+  initialSentimentScore?: number;
+  finalSentimentScore?: number;
+  initialTemperament?: TemperamentType;
+  finalTemperament?: TemperamentType;
+  deEscalationOutcome?: 'RESOLVED_AND_CALMED' | 'PARTIALLY_DE_ESCALATED' | 'UNRESOLVED_ESCALATED';
+  deEscalationNotes?: string;
 }
 
 export interface TranscriptMessage {
