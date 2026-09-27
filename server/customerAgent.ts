@@ -8,6 +8,7 @@ const VOICE_AGENT_URL = 'wss://agents.assemblyai.com/v1/ws';
 export interface CustomerTurn {
   text: string;
   atMs: number;
+  interrupted: boolean;
 }
 
 export interface CallRecording {
@@ -81,7 +82,7 @@ export class CustomerAgentSession {
       case 'transcript.agent.delta':
         return this.send({ type: 'agent_delta', replyId: m.reply_id, delta: m.delta });
       case 'transcript.agent':
-        if (m.text) this.customerTurns.push({ text: m.text, atMs: this.replyStartedAt.get(m.reply_id) ?? this.callMs() });
+        if (m.text) this.customerTurns.push({ text: m.text, atMs: this.replyStartedAt.get(m.reply_id) ?? this.callMs(), interrupted: !!m.interrupted });
         return this.send({ type: 'agent_final', replyId: m.reply_id, text: m.text, interrupted: !!m.interrupted });
       case 'reply.done':
         return this.send({ type: 'agent_reply_done', replyId: m.reply_id, status: m.status });

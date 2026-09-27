@@ -1,56 +1,29 @@
 # AcuityVoice (ACUITY)
 
-Autonomous spoken-English & candidate-screening voice agent for BPOs, contact
-centers, and enterprise ATS evaluations. Runs a live voice interview, scores
-the candidate against a rubric, and surfaces transcript/temperament/marker
-feedback in real time.
+Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). It is a voice roleplay screening tool for contact-center hiring. See README.md for the pipeline and folder map.
 
 ## Stack
 
-- Vite + React 19 + TypeScript (frontend, `src/`)
-- Express + `ws` (WebSocket) server (`server.ts`, `server/`), run via `tsx`
-- Google Gemini API (`@google/genai`) for AI scoring/dialogue
-- AssemblyAI real-time voice session (`server/assemblyai_session.ts`)
-- Tailwind CSS v4
+- Vite + React 19 + TypeScript + Tailwind v4 (`src/`)
+- Express + `ws` server (`server.ts`, `server/`), run with `tsx`
+- **AssemblyAI only.** It uses the Voice Agent API (customer and evaluator), pre-recorded Universal-3.5 Pro, and `ASSEMBLYAI_API_KEY` in `.env`. No Gemini or other LLM providers.
 
-## Run it
+## Commands
 
-```
-bun install   # or npm install (bun.lock present)
-cp .env.example .env   # fill in GEMINI_API_KEY, optional ASSEMBLYAI_API_KEY
-npm run dev     # tsx server.ts — serves frontend + WS/API
-npm run build   # vite build + esbuild bundle of server.ts -> dist/server.cjs
-npm start       # run built server
-npm run lint    # tsc --noEmit
-```
+`npm run dev` · `npm run lint` · `npm test` · `npm run build`
 
-## Structure
+## AssemblyAI integration rules (verified live on 2026-09-27)
 
-```
-server.ts                        # Express + WebSocket entrypoint
-server/
-  assemblyai_session.ts          # AssemblyAI live transcription session handling
-  scoring_rubric.ts              # candidate scoring rubric logic
-src/
-  App.tsx                        # root app component
-  main.tsx                       # React entrypoint
-  types.ts                       # shared frontend types
-  data/scenarios.ts              # interview scenario definitions
-  components/                    # UI: transcript feed, radar chart, scorecard,
-                                  # candidate profile/history, waveform, etc.
-  utils/
-    scoringEngine.ts             # client-side scoring logic
-    transcriptDeduplicator.ts    # dedupes streamed transcript chunks
-extracted_acuity/                # unpacked copy from acuityvoice_project.zip
-acuityvoice_project.zip          # original AI Studio export archive
-```
+- Voice Agent: `wss://agents.assemblyai.com/v1/ws`, `Authorization: Bearer <key>`. Send `session.update` on open.
+- **Never give the customer agent tools.** Tool turns caused silent replies (0 audio) in testing. The evaluator uses exactly one tool, triggered by `reply.create`.
+- Valid English voices: alba, eve, george, jane, jean, mary, michael, anna, charles, paul, vera. `james` and `ivy` do not exist.
+- Leave `turn_detection` at its default; setting `min_silence` disables adaptive pacing. Use `input.transcription_mode` instead.
+- Pre-recorded requests use `speech_models: ["universal-3-5-pro", "universal-2"]` with a raw-key `authorization` header.
+- The LLM Gateway is locked on the current (free) plan, and `qwen3.5-4b-32k-fast` does not support `response_format`. That is why scoring runs on a Voice Agent tool call.
+- Docs index: https://www.assemblyai.com/docs/llms.txt
 
-Note: `extracted_acuity/` and `acuityvoice_project.zip` look like a duplicate/
-archived copy of the app (AI Studio export). Confirm with the user before
-editing both copies — likely only `src/`, `server/`, `server.ts` at repo root
-are the live app.
+## Conventions
 
-## Secrets
-
-- `.env` holds `GEMINI_API_KEY`, `ASSEMBLYAI_API_KEY`, `APP_URL` — never commit.
-- `.env.example` documents placeholders; keep it in sync when adding new vars.
+- Readiness is calculated in code (`readinessFromScores`), never taken from the model.
+- Findings must pass `locateQuote` (a verbatim match against the transcript) or they are discarded.
+- Mic audio is streamed continuously at 24 kHz. The echo gate sends zeros instead of dropping frames.

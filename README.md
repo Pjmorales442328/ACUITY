@@ -1,36 +1,57 @@
-# AcuityVoice (ACUITY)
+# AcuityVoice
 
-Autonomous spoken-English & candidate-screening voice agent for BPOs, contact
-centers, and enterprise ATS evaluations. Runs a live voice interview over
-WebSocket, scores the candidate against a rubric using Gemini, and shows
-real-time transcript, temperament, and marker feedback.
+Voice roleplay screening for contact-center hiring, built entirely on AssemblyAI.
 
-## Setup
+A candidate takes a live phone call with an upset customer played by the **AssemblyAI Voice Agent API**. When the call ends, their recorded speech is transcribed with **Universal-3.5 Pro**, which keeps filler words and word timings. A second **Voice Agent evaluator** then scores the call through a JSON-Schema tool call. The result is a readiness report in which every finding quotes the candidate's exact words, and each quote is verified against the transcript.
 
+## How it works
+
+1. **Live call (Voice Agent API).** The customer persona, opening line, voice and keyterms come from the selected scenario. It uses `transcription_mode: "max_accuracy"` so candidates who pause aren't cut off. The customer has no tools, so it never goes silent mid-call.
+2. **Measure (Universal-3.5 Pro).** The server records the candidate's microphone audio. After the call it is transcribed with `disfluencies: true` and `keyterms_prompt`. Pace, filler rate, hesitation pauses and unclear words are calculated in code from word timestamps and confidence.
+3. **Judge (Voice Agent API).** A short evaluator session receives the transcript and metrics. `reply.create` asks it to call `submit_assessment`, and the tool arguments become the scorecard: five rubric dimensions scored 1–5, a CEFR level, the customer outcome and findings.
+4. **Verify.** Findings are kept only if their quote appears word for word in the transcript. Readiness is calculated from the scores in code. If the candidate says fewer than 25 words, the result is "Not enough speech".
+
+Readiness is reported as *Ready*, *Ready with coaching* or *Needs training*. It is a signal to support human review, not an automated hiring decision.
+
+## Run it
+
+```bash
+npm install
+cp .env.example .env     # set ASSEMBLYAI_API_KEY
+npm run dev              # http://localhost:3000
 ```
-bun install          # or npm install
-cp .env.example .env # fill in GEMINI_API_KEY, optional ASSEMBLYAI_API_KEY
-npm run dev           # starts the Express + WebSocket server (tsx server.ts)
-```
 
-Open the served URL in a browser with microphone access.
-
-## Scripts
+Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 3 minutes to protect API credits.
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Run server + frontend in dev mode |
-| `npm run build` | Build frontend (Vite) and bundle server to `dist/server.cjs` |
-| `npm start` | Run the built server |
+| `npm run dev` | Express + WebSocket server with Vite middleware |
+| `npm run build` | Build the frontend and bundle the server to `dist/server.cjs` |
+| `npm start` | Run the production build |
 | `npm run lint` | Type-check with `tsc --noEmit` |
+| `npm test` | Speech-metrics self-check |
 
 ## Folder structure
 
-- `server.ts`, `server/` — Express app, WebSocket handling, AssemblyAI live
-  transcription session, scoring rubric.
-- `src/` — React frontend: components, scoring engine, transcript
-  deduplication, scenario data.
-- `extracted_acuity/`, `acuityvoice_project.zip` — original AI Studio export;
-  likely superseded by the root app, kept for reference.
-
-See `CLAUDE.md` for more detail on architecture and conventions.
+```
+server.ts                  Express app, REST API, /ws/call WebSocket, Vite/static serving
+server/
+  callHandler.ts           One browser socket: live call, then post-call assessment
+  customerAgent.ts         Voice Agent session playing the customer; records candidate mic audio
+  customerPrompt.ts        Customer system prompt (follows AssemblyAI's prompting guide)
+  transcribe.ts            Upload + Universal-3.5 Pro transcription
+  speechMetrics.ts         Pace, fillers, pauses, confidence, quote location (+ .test.ts)
+  evaluatorAgent.ts        Voice Agent evaluator returning the scorecard via tool call
+  assessment.ts            Pipeline: transcribe -> metrics -> evaluate -> verify
+  validate.ts              Sanitizes scenario/profile data from the browser
+  candidateStore.ts        Saves scorecards to data/candidates.json
+src/
+  App.tsx                  Tabs, scenario library, candidate history, scorecard modal
+  features/screening/      Live screening page
+  components/              UI (scorecard/ holds the report components)
+  hooks/useVoiceCall.ts    Live call state
+  lib/                     Mic capture, PCM playback, transcript folding, labels
+  services/                WebSocket and REST clients
+  data/scenarios.ts        Built-in customer scenarios
+  types.ts                 Types shared by client and server
+```

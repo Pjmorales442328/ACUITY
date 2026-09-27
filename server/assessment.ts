@@ -46,7 +46,8 @@ ${timeline.map(l => `[${clock(l.atMs)}] ${l.speaker === 'Customer' ? 'CUSTOMER' 
 export async function assessCall(apiKey: string, scenario: Scenario, rec: CallRecording): Promise<Assessment> {
   const words = await transcribeCandidate(apiKey, rec.micAudio, scenario.keyterms);
   const metrics = computeSpeechMetrics(words);
-  const segments = segmentWords(words, rec.customerTurns.map(t => t.atMs));
+  // A customer fragment the candidate talked over doesn't end the candidate's turn.
+  const segments = segmentWords(words, rec.customerTurns.filter(t => !t.interrupted).map(t => t.atMs));
   const transcript = buildTimeline(segments, rec);
   const base = {
     scenarioId: scenario.id,

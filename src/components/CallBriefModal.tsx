@@ -1,4 +1,5 @@
-import React from 'react';
+// Pre-call briefing: customer CRM card and assessment expectations shown before connecting.
+import React, { useMemo } from 'react';
 import { PhoneCall, UserCircle, Calendar, Briefcase, FileText, Target, AlertTriangle, Play } from 'lucide-react';
 import { Scenario } from '../types';
 
@@ -29,7 +30,7 @@ export const CallBriefModal: React.FC<CallBriefModalProps> = ({
     };
   };
 
-  const crmData = getCrmData();
+  const crmData = useMemo(getCrmData, [scenario.id]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -69,7 +70,7 @@ export const CallBriefModal: React.FC<CallBriefModalProps> = ({
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">Customer Name</span>
                   <span className="text-sm font-semibold text-slate-900">
-                    {scenario.customerPersona.split(',')[0].replace('You are ', '')}
+                    {scenario.customerName}
                   </span>
                 </div>
                 
@@ -122,7 +123,7 @@ export const CallBriefModal: React.FC<CallBriefModalProps> = ({
           <div className="bg-slate-100 border border-slate-200 rounded-lg p-3 flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
             <p className="text-xs text-slate-600 leading-relaxed">
-              When you click Connect, your microphone will be activated immediately, and the AI customer will expect you to greet them as a live agent.
+              When you click Connect, your microphone turns on and the customer speaks first. Respond out loud as the support agent; the call is scored after you end it.
             </p>
           </div>
         </div>

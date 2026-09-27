@@ -156,7 +156,7 @@ export const AudioWaveform: React.FC<AudioWaveformProps> = ({
         {isCallActive && (
           <div className="absolute top-1.5 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/90 border border-slate-200 text-[10px] text-slate-600 font-mono shadow-2xs">
             <Radio className="w-3 h-3 text-blue-600" />
-            <span>16kHz Stream</span>
+            <span>24kHz PCM</span>
           </div>
         )}
       </div>
