@@ -59,7 +59,7 @@ export const ScenarioForm: React.FC<{ onCreate: (s: Scenario) => void; onCancel:
       </div>
       <div>
         <label className={label}>Your call script (optional, one required step per line). Candidates are checked against every step.</label>
-        <textarea rows={5} value={f.script} onChange={set('script')} className={input}
+        <textarea rows={7} value={f.script} onChange={set('script')} className={input}
           placeholder={'Greet with the company name and your name\nVerify the account holder\nAcknowledge the concern\nGive a reference number\nClose with the company name'} />
       </div>
       <div className="flex justify-end gap-2">

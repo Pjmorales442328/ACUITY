@@ -12,7 +12,7 @@ import type { Scenario, Scorecard } from '../../types';
 import { ScenarioContextCard } from './ScenarioContextCard';
 
 const MAX_SECONDS = 180;
-const DEMO_REP = 'Sam (AI trainee rep)';
+const DEMO_REP = 'Sam (AI trainee rep)'; // used when no candidate name is entered
 
 interface ScreeningPageProps {
   scenarios: Scenario[];
@@ -34,10 +34,11 @@ export const ScreeningPage: React.FC<ScreeningPageProps> = props => {
   const call = useVoiceCall(props.onScorecard);
 
   const scenario = scenarios.find(s => s.id === selectedScenarioId) || scenarios[0];
+  const demoName = candidateName.trim() || DEMO_REP;
   const inCall = call.phase === 'connecting' || call.phase === 'live';
   const status =
     call.phase === 'live'
-      ? call.agentSpeaking ? `${scenario.customerName} is speaking...` : call.candidateSpeaking ? (call.demo ? `${DEMO_REP} is speaking...` : 'You are speaking...') : call.demo ? 'Listening...' : 'Your turn: respond to the customer'
+      ? call.agentSpeaking ? `${scenario.customerName} is speaking...` : call.candidateSpeaking ? (call.demo ? `${demoName} is speaking...` : 'You are speaking...') : call.demo ? 'Listening...' : 'Your turn: respond to the customer'
       : call.phase === 'analyzing' ? 'Call ended. Assessing...' : 'Ready';
 
   return (
@@ -70,14 +71,14 @@ export const ScreeningPage: React.FC<ScreeningPageProps> = props => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <TranscriptFeed lines={call.lines} interim={call.interim} candidateName={call.demo ? DEMO_REP : candidateName} customerName={scenario.customerName} />
+          <TranscriptFeed lines={call.lines} interim={call.interim} candidateName={call.demo ? demoName : candidateName} customerName={scenario.customerName} />
           <CandidateControls
             phase={call.phase} elapsed={call.elapsed} maxSeconds={MAX_SECONDS}
             candidateTurns={call.lines.filter(l => l.speaker === 'Candidate').length}
             fillers={call.fillers} notice={call.notice} error={call.error} demo={call.demo}
             hasScorecard={Boolean(latestScorecard)}
             onStart={() => setBriefOpen(true)} onEnd={call.end}
-            onDemo={() => call.start(scenario, { candidateName: DEMO_REP, candidateEmail: '', targetRole }, true)} onViewScorecard={props.onViewScorecard}
+            onDemo={() => call.start(scenario, { candidateName: demoName, candidateEmail, targetRole }, true)} onViewScorecard={props.onViewScorecard}
           />
         </div>
         <div className="lg:col-span-5">

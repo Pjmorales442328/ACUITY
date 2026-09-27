@@ -1,134 +1,129 @@
 <!doctype html>
-<!-- Video title cards for the demo video, rendered to 1920x1080 PNGs by demo/render.mjs (?s=<scene id>). -->
+<!-- Title cards for the demo video, rendered to 1920x1080 PNGs (?s=<scene id>). Editorial style: paper, ink, one signal color. -->
 <html>
 <head>
 <meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0b1220; --panel: #111a2e; --line: #22304d; --text: #e7ecf5; --muted: #93a1bd; --blue: #4c8dff; --violet: #a78bfa; --green: #34d399; --amber: #fbbf24; --rose: #fb7185; }
+  :root { --paper: #F3EEE4; --ink: #16140F; --muted: #6B645A; --rule: #D8CFBF; --signal: #D9480F; --green: #2F7A4F; }
   * { box-sizing: border-box; margin: 0; }
-  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--text); font-family: Inter, sans-serif; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'IBM Plex Sans', sans-serif; }
   .transparent, .transparent body { background: transparent; }
-  section { display: none; width: 1920px; height: 1080px; padding: 110px 140px; position: relative;
-    background: radial-gradient(1200px 600px at 85% -10%, rgba(76,141,255,.18), transparent 60%), radial-gradient(900px 500px at -10% 110%, rgba(167,139,250,.14), transparent 60%); }
-  section.on { display: flex; flex-direction: column; }
-  .kicker { font: 600 26px Inter; letter-spacing: .14em; text-transform: uppercase; color: var(--blue); margin-bottom: 26px; }
-  h1 { font-size: 128px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
-  h2 { font-size: 78px; font-weight: 800; letter-spacing: -.03em; line-height: 1.08; max-width: 1500px; }
-  .lead { font-size: 44px; color: var(--muted); margin-top: 34px; line-height: 1.35; max-width: 1400px; }
-  .grad { background: linear-gradient(90deg, var(--blue), var(--violet)); -webkit-background-clip: text; color: transparent; }
-  .row { display: flex; gap: 36px; margin-top: 70px; }
-  .card { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 26px; padding: 44px; }
-  .card h3 { font-size: 38px; font-weight: 700; margin: 18px 0 16px; }
-  .card p { font-size: 29px; color: var(--muted); line-height: 1.45; }
-  .num { font: 700 26px 'JetBrains Mono'; color: var(--blue); }
-  .tag { display: inline-block; font: 600 22px Inter; padding: 8px 16px; border-radius: 999px; background: rgba(76,141,255,.14); color: #9cc0ff; }
-  .mono { font-family: 'JetBrains Mono'; font-size: 24px; color: #b8c6e3; }
-  .foot { position: absolute; left: 140px; right: 140px; bottom: 70px; display: flex; justify-content: space-between; font-size: 26px; color: var(--muted); }
-  .logo { display: inline-flex; align-items: center; gap: 22px; font-size: 40px; font-weight: 800; }
-  .logo i { width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, var(--blue), var(--violet)); display: grid; place-items: center; font-style: normal; font-size: 38px; }
-  .quote { font-size: 34px; color: var(--muted); font-style: italic; }
-  .vs { display: flex; align-items: center; gap: 50px; margin-top: 80px; }
-  .agent { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 30px; padding: 50px; }
-  .agent .who { font-size: 52px; font-weight: 800; margin: 18px 0 10px; }
-  .agent p { font-size: 30px; color: var(--muted); line-height: 1.45; }
-  .wire { font-size: 70px; color: var(--blue); }
-  ul.big { list-style: none; padding: 0; margin-top: 60px; display: grid; gap: 30px; }
-  ul.big li { font-size: 38px; line-height: 1.35; padding-left: 60px; position: relative; }
-  ul.big li::before { content: ''; position: absolute; left: 0; top: 14px; width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg, var(--blue), var(--violet)); }
-  ul.big b { color: #fff; }
-  ul.big span { color: var(--muted); }
-  .pill { display: inline-block; padding: 12px 26px; border-radius: 999px; font-size: 30px; font-weight: 700; margin-right: 18px; }
-  /* lower third, overlaid on the screen recording */
-  .l3 { position: absolute; left: 60px; bottom: 60px; display: flex; align-items: center; gap: 24px; padding: 26px 38px; border-radius: 22px; background: rgba(11,18,32,.92); border: 1px solid rgba(167,139,250,.5); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
-  .l3 .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 8px rgba(251,113,133,.2); }
-  .l3 b { font-size: 32px; } .l3 span { font-size: 26px; color: var(--muted); display: block; margin-top: 4px; }
+  section { display: none; width: 1920px; height: 1080px; padding: 120px 150px; position: relative; flex-direction: column; }
+  section.on { display: flex; }
+  .dark { background: var(--ink); color: var(--paper); }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  .label { font: 500 24px 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+  h1 { font: 600 128px/1.02 'Fraunces', serif; letter-spacing: -.02em; }
+  h2 { font: 600 88px/1.06 'Fraunces', serif; letter-spacing: -.015em; max-width: 1560px; }
+  .lead { font-size: 40px; line-height: 1.4; color: var(--muted); max-width: 1400px; }
+  .signal { color: var(--signal); }
+  .note { font: 400 44px 'Fraunces', serif; font-style: italic; background: #FFF9E6; border: 1px solid #E9DDB8; padding: 30px 40px; transform: rotate(-2deg); box-shadow: 0 16px 40px rgba(22,20,15,.12); width: fit-content; }
+  .lines p { font: 500 52px/1.3 'Fraunces', serif; padding: 26px 0; border-top: 2px solid var(--rule); }
+  .lines p:last-child { border-bottom: 2px solid var(--rule); }
+  .lines span { font: 500 24px 'IBM Plex Mono', monospace; color: var(--signal); margin-right: 30px; vertical-align: middle; }
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 90px; border-top: 3px solid var(--ink); }
+  .flow div { padding: 34px 40px 0 0; }
+  .flow b { display: block; font: 600 50px 'Fraunces', serif; margin: 14px 0 16px; }
+  .flow p { font-size: 29px; line-height: 1.45; color: var(--muted); }
+  .flow .by { font: 500 22px 'IBM Plex Mono', monospace; color: var(--signal); letter-spacing: .04em; }
+  .facts { display: grid; grid-template-columns: 300px 1fr; row-gap: 26px; margin-top: 70px; font-size: 40px; }
+  .facts dt { font: 500 26px 'IBM Plex Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding-top: 10px; }
+  .facts dd { font-family: 'Fraunces', serif; font-weight: 500; }
+  .shot { position: absolute; left: 150px; right: 150px; top: 300px; bottom: 70px; border: 2px solid var(--ink); box-shadow: 18px 18px 0 var(--rule); overflow: hidden; }
+  .shot img { width: 100%; display: block; }
+  .pills span { display: inline-block; font: 500 34px 'Fraunces', serif; padding: 10px 30px; border: 2px solid currentColor; border-radius: 999px; margin-right: 18px; }
+  /* lower thirds over the screen recording */
+  .l3 { position: absolute; left: 60px; bottom: 56px; background: var(--paper); color: var(--ink); padding: 22px 34px; border-left: 8px solid var(--signal); box-shadow: 0 18px 50px rgba(0,0,0,.35); }
+  .l3 b { font: 600 36px 'Fraunces', serif; display: block; }
+  .l3 span { font: 400 24px 'IBM Plex Mono', monospace; color: var(--muted); }
+  .fine { position: absolute; right: 60px; bottom: 26px; font: 400 20px 'IBM Plex Mono', monospace; color: rgba(243,238,228,.8); background: rgba(22,20,15,.6); padding: 6px 12px; }
 </style>
 </head>
 <body>
 
-<section id="title">
-  <div class="logo"><i>🎧</i> AcuityVoice</div>
-  <div style="margin-top:auto">
-    <h1>Hear the call<br><span class="grad">before you make the hire.</span></h1>
-    <p class="lead">Voice roleplay screening for contact-center hiring, with an evidence-backed readiness report.</p>
-  </div>
-  <div class="foot" style="position:static;margin-top:80px"><span>AssemblyAI Voice Agent Hackathon · lablab.ai</span><span>Built entirely on AssemblyAI</span></div>
+<section id="cold" class="dark">
+  <p class="label" style="color:#A59C8C">00:01 · Jordan Reynolds, customer · card dispute line</p>
+  <p class="serif" style="font-size:78px;line-height:1.18;font-weight:500;margin-top:70px;max-width:1600px">"There's a forty five dollar charge on my card. I <span class="signal">NEVER</span> signed up for that! And my rent is due <span class="signal">TOMORROW</span>."</p>
+  <img src="waveform.svg" style="position:absolute;left:150px;bottom:110px;width:1620px;height:210px;opacity:.9" alt="">
 </section>
 
-<section id="problem">
-  <div class="kicker">The problem</div>
-  <h2>Phone screens don't scale, and they leave no evidence.</h2>
-  <div class="row">
-    <div class="card"><div class="num">01</div><h3>Recruiter hours</h3><p>Every applicant gets a manual phone screen, wave after hiring wave.</p></div>
-    <div class="card"><div class="num">02</div><h3>Subjective notes</h3><p class="quote">"Good English." "Seems confident."</p><p style="margin-top:12px">Nothing anyone can check later.</p></div>
-    <div class="card"><div class="num">03</div><h3>Wrong test</h3><p>A grammar quiz can't show whether someone can calm a customer whose rent is due tomorrow.</p></div>
+<section id="hook">
+  <p class="label">The problem</p>
+  <h2 style="margin-top:40px">Most contact centers find out whether a new hire can handle that call <span class="signal">after</span> they've hired them.</h2>
+  <div style="display:flex;align-items:center;gap:60px;margin-top:90px">
+    <p class="lead" style="max-width:760px">Before that: a phone screen, some small talk, and a note nobody can check.</p>
+    <div class="note">"Good English. Seems confident."</div>
+  </div>
+</section>
+
+<section id="what">
+  <p class="label">AcuityVoice</p>
+  <h2 style="margin-top:40px">Screen for the actual job.</h2>
+  <div class="lines" style="margin-top:70px">
+    <p><span>01</span>A live customer who interrupts, pushes back and escalates.</p>
+    <p><span>02</span>Scored against your company's own call script.</p>
+    <p><span>03</span>Every score backed by the candidate's exact words.</p>
   </div>
 </section>
 
 <section id="how">
-  <div class="kicker">How it works · one AssemblyAI key</div>
-  <h2>Call. Measure. Judge. Verify.</h2>
-  <div class="row">
-    <div class="card"><span class="tag">Voice Agent API</span><h3>1 · Live call</h3><p>An agent plays the upset customer: persona, voice and keyterms per scenario. <span class="mono">max_accuracy</span> turn-taking so pauses aren't cut off.</p></div>
-    <div class="card"><span class="tag">Universal-3.5 Pro</span><h3>2 · Measure</h3><p>The candidate's audio is transcribed with <span class="mono">disfluencies</span> kept. Pace, fillers, pauses and clarity are computed in code from word timings.</p></div>
-    <div class="card"><span class="tag">Voice Agent API</span><h3>3 · Judge</h3><p>An evaluator agent returns the scorecard through one <span class="mono">submit_assessment</span> tool call.</p></div>
-    <div class="card" style="border-color:rgba(52,211,153,.45)"><span class="tag" style="background:rgba(52,211,153,.14);color:#86efc5">In code</span><h3>4 · Verify</h3><p>Quotes must match the transcript word for word. Readiness is computed from the scores, not by the model.</p></div>
+  <p class="label">Under the hood · one AssemblyAI key</p>
+  <h2 style="margin-top:40px">Call, measure, judge, verify.</h2>
+  <div class="flow">
+    <div><span class="by">VOICE AGENT API</span><b>Call</b><p>The customer, live: persona, voice, keyterms. Max-accuracy turn-taking.</p></div>
+    <div><span class="by">UNIVERSAL-3.5 PRO</span><b>Measure</b><p>Candidate audio with every um and uh, word timings and confidence.</p></div>
+    <div><span class="by">VOICE AGENT API</span><b>Judge</b><p>A second session scores the call through one JSON-Schema tool call.</p></div>
+    <div><span class="by">OUR CODE</span><b>Verify</b><p>Quotes must match the transcript word for word, or they're dropped.</p></div>
   </div>
 </section>
 
 <section id="demo">
-  <div class="kicker">Live demo</div>
-  <h2>Two AssemblyAI Voice Agents. One call.</h2>
-  <div class="vs">
-    <div class="agent"><span class="tag">Customer · voice "jane"</span><div class="who">Jordan</div><p>Unknown $45 card charge, rent due tomorrow. Pushes back on vague answers.</p></div>
-    <div class="wire">⇄</div>
-    <div class="agent" style="border-color:rgba(167,139,250,.5)"><span class="tag" style="background:rgba(167,139,250,.16);color:#c9b8ff">AI trainee rep · voice "charles"</span><div class="who">Sam</div><p>Takes the call in place of a microphone, and is scored exactly like a human candidate.</p></div>
-  </div>
-  <p class="lead" style="font-size:32px">Real-time audio is piped between the two sessions. No script: every line is generated live.</p>
+  <p class="label">A screening, recorded</p>
+  <h2 style="margin-top:40px">Card dispute. Rent due tomorrow.</h2>
+  <dl class="facts">
+    <dt>Candidate</dt><dd>Sam Rivera, applying for card support</dd>
+    <dt>Script</dt><dd>ApexPay's 7-step dispute script</dd>
+    <dt>Customer</dt><dd>Jordan, who hasn't seen the script</dd>
+  </dl>
 </section>
 
-<section id="engineering">
-  <div class="kicker">What makes it reliable</div>
-  <h2>Engineering decisions</h2>
-  <ul class="big">
-    <li><b>The customer agent has no tools.</b> <span>Tool turns made it go silent mid-call; judging moved to a separate evaluator session.</span></li>
-    <li><b>Adaptive turn detection + max_accuracy.</b> <span>Nervous candidates who pause aren't cut off.</span></li>
-    <li><b>Evidence or nothing.</b> <span>Every finding is a verbatim quote with a timestamp; unmatched quotes are discarded.</span></li>
-    <li><b>Honest edge cases.</b> <span>Under 25 words of speech returns "Not enough speech", never an invented score.</span></li>
-  </ul>
+<section id="studio">
+  <p class="label">Bring your own call</p>
+  <h2 style="margin-top:30px;font-size:72px">Your customer. Your script. Your rubric.</h2>
+  <div class="shot"><img src="out/shots/studio.png" alt=""></div>
 </section>
 
 <section id="value">
-  <div class="kicker">Business value</div>
-  <h2>A phone screen a reviewer can check in one minute.</h2>
-  <ul class="big">
-    <li><b>Consistent:</b> <span>every candidate gets the same customer, the same rubric, the same metrics.</span></li>
-    <li><b>Evidence-backed:</b> <span>scores come with the candidate's own words and a jump-to-moment transcript.</span></li>
-    <li><b>Human in the loop:</b> <span>a readiness signal, not an automated hiring decision (hiring AI is high-risk under the EU AI Act).</span></li>
-  </ul>
-  <div style="margin-top:56px"><span class="pill" style="background:rgba(52,211,153,.15);color:#86efc5">Ready</span><span class="pill" style="background:rgba(251,191,36,.15);color:#fcd67a">Ready with coaching</span><span class="pill" style="background:rgba(251,113,133,.15);color:#fda4b4">Needs training</span></div>
+  <p class="label">For contact-center hiring and training teams</p>
+  <h2 style="margin-top:40px">A phone screen a reviewer can check in <span class="signal">one minute.</span></h2>
+  <p class="lead" style="margin-top:50px">The same customer and rubric for every candidate, with the evidence attached. A readiness signal, not an automated hiring decision.</p>
+  <div class="pills" style="margin-top:70px"><span style="color:var(--green)">Ready</span><span style="color:#9A6A00">Ready with coaching</span><span style="color:var(--signal)">Needs training</span></div>
 </section>
 
-<section id="close">
+<section id="close" class="dark">
   <div style="margin:auto 0">
-    <div class="logo"><i>🎧</i> AcuityVoice</div>
-    <h1 style="margin-top:50px;font-size:120px">Hear the call<br><span class="grad">before you make the hire.</span></h1>
-    <p class="lead">Voice Agent API · Universal-3.5 Pro · one AssemblyAI key</p>
-    <p class="mono" style="margin-top:40px;font-size:30px">github.com/Pjmorales442328/ACUITY</p>
+    <p class="label" style="color:#A59C8C">AcuityVoice</p>
+    <h1 style="margin-top:40px">Hear the call<br><span class="signal">before</span> you make the hire.</h1>
+    <p class="mono" style="font-size:30px;margin-top:60px;color:#A59C8C">Built on AssemblyAI Voice Agent API + Universal-3.5 Pro · github.com/Pjmorales442328/ACUITY</p>
   </div>
 </section>
 
 <section id="l3_call" style="background:none">
-  <div class="l3"><div class="dot"></div><div><b>Live demo · both voices are AssemblyAI Voice Agents</b><span>Customer "Jordan" vs. AI trainee rep "Sam", unscripted, in real time</span></div></div>
+  <div class="l3"><b>Live screening call</b><span>Customer: AssemblyAI Voice Agent · Candidate: Sam Rivera</span></div>
+</section>
+
+<section id="l3_fine" style="background:none">
+  <div class="fine">Candidate voice simulated for this recording</div>
 </section>
 
 <section id="l3_report" style="background:none">
-  <div class="l3" style="border-color:rgba(52,211,153,.5)"><div class="dot" style="background:var(--green);box-shadow:0 0 0 8px rgba(52,211,153,.2)"></div><div><b>Readiness report, generated after hang-up</b><span>Universal-3.5 Pro metrics · evaluator agent · verbatim-verified quotes</span></div></div>
+  <div class="l3"><b>The report, seconds after hang-up</b><span>Script checklist · Universal-3.5 Pro metrics · verified quotes</span></div>
 </section>
 
 <script>
-  const id = new URLSearchParams(location.search).get('s') || 'title';
+  const id = new URLSearchParams(location.search).get('s') || 'cold';
   document.getElementById(id).classList.add('on');
   if (id.startsWith('l3_')) document.documentElement.classList.add('transparent');
 </script>
