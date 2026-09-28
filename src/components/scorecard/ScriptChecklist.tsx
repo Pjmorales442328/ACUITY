@@ -1,13 +1,14 @@
 // Company call-script adherence: each required step, whether the candidate covered it, and the verified quote.
 import React from 'react';
-import { CheckCircle2, CircleDashed, XCircle } from 'lucide-react';
+import { CheckCircle2, CircleDashed, MinusCircle, XCircle } from 'lucide-react';
 import { clock } from '../../lib/labels';
 import type { ScriptStep, StepStatus } from '../../types';
 
 const STATUS: Record<StepStatus, { label: string; icon: React.ReactNode; tone: string }> = {
   DONE: { label: 'Done', icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />, tone: 'text-emerald-700' },
   PARTIAL: { label: 'Partial', icon: <CircleDashed className="w-4 h-4 text-amber-600" />, tone: 'text-amber-700' },
-  MISSED: { label: 'Missed', icon: <XCircle className="w-4 h-4 text-rose-600" />, tone: 'text-rose-700' }
+  MISSED: { label: 'Missed', icon: <XCircle className="w-4 h-4 text-rose-600" />, tone: 'text-rose-700' },
+  NOT_APPLICABLE: { label: 'Not applicable', icon: <MinusCircle className="w-4 h-4 text-slate-400" />, tone: 'text-slate-500' }
 };
 
 export const ScriptChecklist: React.FC<{ steps: ScriptStep[]; adherence: number | null; onJump: (ms: number) => void }> = ({ steps, adherence, onJump }) => {

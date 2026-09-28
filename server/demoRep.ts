@@ -84,7 +84,8 @@ const STRONG = `You are an experienced, calm, confident agent, the kind every te
 - Name the caller's specific worry and say what you will do about it. Acknowledge feelings once, then act.
 - Give exact timeframes, fees and reference numbers. State the policies below word for word when they come up, and never promise anything they forbid.
 - If the caller demands something the policy forbids, say no kindly, explain why in one sentence, and offer what you can do.
-- No filler words. Finish with a short recap and the closing question from the script.`;
+- Keep the call moving: once a step is done, go straight to the next. Don't re-ask for details the caller already gave.
+- No filler words. Finish with a short recap, the reference number and the closing question from the script.`;
 
 function buildRepPrompt(s: Scenario, style: DemoRepStyle, repName: string): string {
   const strong = style === 'strong';

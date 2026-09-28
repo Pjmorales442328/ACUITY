@@ -12,7 +12,7 @@ export interface RawEvaluation {
   customer_outcome: 'RESOLVED_AND_CALMED' | 'PARTIALLY_DE_ESCALATED' | 'UNRESOLVED_ESCALATED';
   summary: string;
   findings: { dimension: string; impact: 'POSITIVE' | 'NEGATIVE'; quote: string; coaching: string }[];
-  script_steps?: { step_number: number; status: 'DONE' | 'PARTIAL' | 'MISSED'; quote: string }[];
+  script_steps?: { step_number: number; status: 'DONE' | 'PARTIAL' | 'MISSED' | 'NOT_APPLICABLE'; quote: string }[];
 }
 
 // Only sent when the scenario has a company call script.
@@ -23,7 +23,7 @@ const SCRIPT_STEPS_PROP = {
     type: 'object',
     properties: {
       step_number: { type: 'integer' },
-      status: { type: 'string', enum: ['DONE', 'PARTIAL', 'MISSED'], description: 'DONE = fully covered, PARTIAL = attempted or incomplete, MISSED = not covered.' },
+      status: { type: 'string', enum: ['DONE', 'PARTIAL', 'MISSED', 'NOT_APPLICABLE'], description: 'DONE = fully covered, PARTIAL = attempted or incomplete, MISSED = not covered. NOT_APPLICABLE only for a step that starts with "If" whose condition never came up in this call.' },
       quote: { type: 'string', description: 'For DONE or PARTIAL: the CANDIDATE words, copied exactly, that cover the step. Empty for MISSED.' }
     },
     required: ['step_number', 'status', 'quote']

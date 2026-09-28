@@ -92,7 +92,8 @@ export interface Finding {
 
 export type DimensionScores = Record<Dimension, number>;
 
-export type StepStatus = 'DONE' | 'PARTIAL' | 'MISSED';
+// NOT_APPLICABLE: a conditional step ("If ...") whose condition never came up; excluded from adherence.
+export type StepStatus = 'DONE' | 'PARTIAL' | 'MISSED' | 'NOT_APPLICABLE';
 
 export interface ScriptStep {
   step: string;

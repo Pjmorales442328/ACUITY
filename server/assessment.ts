@@ -30,12 +30,15 @@ export function readinessFromScores(scores: DimensionScores): Readiness {
   return 'READY_WITH_COACHING';
 }
 
-// Share of script steps covered, with partial steps counting half.
+// Share of applicable script steps covered, with partial steps counting half.
 export function scriptAdherence(steps: ScriptStep[]): number | null {
-  if (!steps.length) return null;
-  const covered = steps.reduce((n, s) => n + (s.status === 'DONE' ? 1 : s.status === 'PARTIAL' ? 0.5 : 0), 0);
-  return Math.round((100 * covered) / steps.length);
+  const applicable = steps.filter(s => s.status !== 'NOT_APPLICABLE');
+  if (!applicable.length) return null;
+  const covered = applicable.reduce((n, s) => n + (s.status === 'DONE' ? 1 : s.status === 'PARTIAL' ? 0.5 : 0), 0);
+  return Math.round((100 * covered) / applicable.length);
 }
+
+const CONDITIONAL = /^(if|when|unless)/i;
 
 function formatContext(scenario: Scenario, metrics: SpeechMetrics, timeline: TranscriptLine[]) {
   const script = scenario.script.length
@@ -110,6 +113,8 @@ export async function assessCall(apiKey: string, scenario: Scenario, rec: CallRe
     const critical = scenario.critical?.includes(i + 1) || undefined;
     const r = ev.script_steps?.find(s => s.step_number === i + 1);
     if (!r || r.status === 'MISSED') return { step, status: 'MISSED', quote: null, atMs: null, critical };
+    // Only a non-critical conditional step can be skipped as not applicable.
+    if (r.status === 'NOT_APPLICABLE') return { step, status: CONDITIONAL.test(step) && !critical ? 'NOT_APPLICABLE' : 'MISSED', quote: null, atMs: null, critical };
     const atMs = locateQuote(words, r.quote || '');
     if (atMs === null) {
       console.warn(`[assessment] step ${i + 1} quote not found in transcript, counted as missed:`, r.quote);

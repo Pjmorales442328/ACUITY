@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { computeSpeechMetrics, locateQuote, segmentWords, type Word } from './speechMetrics';
 import { scriptAdherence } from './assessment';
 import { evaluateBar } from './criteria';
+import type { StepStatus } from '../src/types';
 
 const w = (text: string, start: number, end: number, confidence = 0.99): Word => ({ text, start, end, confidence });
 
@@ -40,9 +41,11 @@ assert.equal(locateQuote(words, 'you need to wait, like, seven days.'), 2215, 'n
 assert.equal(locateQuote(words, 'That is the policy. You need to wait, like, 7 days.'), 2215, 'stitched sentences each found');
 assert.equal(locateQuote(words, 'That is the policy. You must wait.'), null, 'one paraphrased sentence rejects the stitch');
 // Script adherence: partial steps count half.
-const step = (status: 'DONE' | 'PARTIAL' | 'MISSED') => ({ step: 's', status, quote: null, atMs: null });
+const step = (status: StepStatus) => ({ step: 's', status, quote: null, atMs: null });
 assert.equal(scriptAdherence([]), null);
 assert.equal(scriptAdherence([step('DONE'), step('PARTIAL'), step('MISSED'), step('MISSED')]), 38);
+assert.equal(scriptAdherence([step('DONE'), step('NOT_APPLICABLE')]), 100, 'not-applicable steps are left out');
+assert.equal(scriptAdherence([step('NOT_APPLICABLE')]), null);
 
 // Bars: level 1 has none; a missed critical step fails even a strong call.
 const crit = (status: 'DONE' | 'MISSED') => ({ step: 'Verify identity', status, quote: null, atMs: null, critical: true });
