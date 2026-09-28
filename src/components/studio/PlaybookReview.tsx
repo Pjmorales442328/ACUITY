@@ -1,16 +1,7 @@
-// Review screen for an analyzed call script: confirm critical steps, see the three levels and their pass criteria, then create them.
+// Review screen for an analyzed client playbook: one tab per call type, confirm critical steps, then create every call type's three levels.
 import React, { useState } from 'react';
-import { ShieldAlert, Check } from 'lucide-react';
-import { BARS } from '../../data/bars';
 import type { Playbook, Scenario } from '../../types';
-
-const READINESS = { READY: 'Ready', READY_WITH_COACHING: 'Ready with coaching' } as const;
-
-function criteriaFor(level: number) {
-  if (level === 1) return 'Practice. No pass or fail; the report shows every step missed.';
-  const bar = BARS[level as 2 | 3];
-  return `${bar.name}: every critical step done, script followed ${bar.minAdherence}%+, readiness ${bar.readiness.map(r => READINESS[r]).join(' or ')}.`;
-}
+import { CallTypeReview } from './CallTypeReview';
 
 interface Props {
   playbook: Playbook;
@@ -19,90 +10,48 @@ interface Props {
 }
 
 export const PlaybookReview: React.FC<Props> = ({ playbook, onCreate, onDiscard }) => {
-  const [critical, setCritical] = useState(() => new Set(playbook.critical.map(c => c.step)));
-  const reasons = new Map(playbook.critical.map(c => [c.step, c.reason]));
+  const types = playbook.callTypes;
+  const [tab, setTab] = useState(0);
+  const [critical, setCritical] = useState(() => types.map(t => new Set(t.critical.map(c => c.step))));
   const toggle = (step: number) =>
-    setCritical(prev => {
-      const next = new Set(prev);
+    setCritical(prev => prev.map((set, i) => {
+      if (i !== tab) return set;
+      const next = new Set(set);
       next.has(step) ? next.delete(step) : next.add(step);
       return next;
-    });
+    }));
+  const create = () => onCreate(types.flatMap((t, i) => t.levels.map(l => ({ ...l, critical: [...critical[i]].sort((a, b) => a - b) }))));
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-5">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-4">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Playbook · {playbook.role}</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Client playbook · {playbook.role}</p>
         <h3 className="text-base font-bold text-slate-900">{playbook.name}</h3>
+        <p className="text-xs text-slate-600 mt-0.5">
+          Found <b>{types.length} call type{types.length > 1 ? 's' : ''}</b>. Each becomes three levels: practice, hiring bar and certification bar.
+        </p>
       </div>
 
-      <section>
-        <h4 className="text-xs font-bold text-slate-800 mb-1">Call flow</h4>
-        <p className="text-[11px] text-slate-500 mb-2">Missing a critical step fails the hiring and certification bars, like an auto-fail on a QA form. Click to change.</p>
-        <ol className="space-y-1.5">
-          {playbook.script.map((step, i) => {
-            const n = i + 1;
-            const on = critical.has(n);
-            return (
-              <li key={n} className="flex items-start gap-2 text-xs text-slate-800">
-                <span className="w-5 shrink-0 text-right font-mono text-slate-400">{n}.</span>
-                <span className="flex-1">
-                  {step}
-                  {on && reasons.get(n) && <span className="block text-[11px] text-red-700">{reasons.get(n)}</span>}
-                </span>
-                <button
-                  onClick={() => toggle(n)}
-                  aria-pressed={on}
-                  className={`shrink-0 flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-semibold cursor-pointer ${on ? 'bg-red-50 border-red-300 text-red-700' : 'border-slate-200 text-slate-400 hover:text-slate-700'}`}
-                >
-                  <ShieldAlert className="w-3 h-3" /> {on ? 'Critical' : 'Mark critical'}
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </section>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <section>
-          <h4 className="text-xs font-bold text-slate-800 mb-1.5">Policies the rep must state correctly</h4>
-          <ul className="space-y-1 text-xs text-slate-700 list-disc pl-4">
-            {playbook.policies.map(p => <li key={p}>{p}</li>)}
-          </ul>
-        </section>
-        <section>
-          <h4 className="text-xs font-bold text-slate-800 mb-1.5">Objections the callers will raise</h4>
-          <ul className="space-y-1.5 text-xs">
-            {playbook.objections.map(o => (
-              <li key={o.customerSays}>
-                <span className="text-slate-800">"{o.customerSays}"</span>
-                <span className="block text-slate-500">→ {o.repShould}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      <div role="tablist" className="flex flex-wrap gap-1.5 border-b border-slate-200 pb-2">
+        {types.map((t, i) => (
+          <button
+            key={t.name}
+            role="tab"
+            aria-selected={i === tab}
+            onClick={() => setTab(i)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${i === tab ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+          >
+            {t.name} <span className="opacity-70">· {critical[i].size} critical</span>
+          </button>
+        ))}
       </div>
 
-      <section>
-        <h4 className="text-xs font-bold text-slate-800 mb-2">Three levels from this script</h4>
-        <div className="grid gap-3 md:grid-cols-3">
-          {playbook.levels.map(l => (
-            <div key={l.id} className="border border-slate-200 rounded-lg p-3 flex flex-col gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">{l.difficulty}</p>
-              <p className="text-xs text-slate-600">{l.description}</p>
-              <p className="text-xs italic text-slate-800 bg-slate-50 border border-slate-200 rounded p-2">{l.customerName}: "{l.greeting}"</p>
-              <p className="text-[11px] text-slate-600 mt-auto"><Check className="inline w-3 h-3 text-emerald-600" /> {criteriaFor(l.level || 1)}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <CallTypeReview callType={types[tab]} critical={critical[tab]} onToggle={toggle} />
 
       <div className="flex justify-end gap-2">
         <button onClick={onDiscard} className="px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer">Discard</button>
-        <button
-          onClick={() => onCreate(playbook.levels.map(l => ({ ...l, critical: [...critical].sort((a, b) => a - b) })))}
-          className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer"
-        >
-          Create the 3 levels
+        <button onClick={create} className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer">
+          Create {types.length * 3} scenarios ({types.length} call types × 3 levels)
         </button>
       </div>
     </div>

@@ -84,7 +84,7 @@ export function handleCallSocket(client: WebSocket, apiKey: string | undefined) 
       holdsSlot = true;
       session = new CustomerAgentSession(apiKey, scenario, send, sendAudio);
       session.start();
-      if (msg.demo === true) demoRep = new DemoRep(apiKey, scenario, session, send, sendToBrowser);
+      if (msg.demo) demoRep = new DemoRep(apiKey, scenario, profile, msg.demo === 'strong' ? 'strong' : 'trainee', session, send, sendToBrowser);
       limitTimer = setTimeout(() => {
         send({ type: 'time_limit' });
         endCall();

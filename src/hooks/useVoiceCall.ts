@@ -4,7 +4,7 @@ import { addCandidateLine, appendAgentDelta, countFillers, finalizeAgentLine, ty
 import { startMic, type MicCapture } from '../lib/micCapture';
 import { PcmPlayer, SAMPLE_RATE } from '../lib/pcmPlayer';
 import { openCallSocket, type CallSocket, type ServerEvent } from '../services/callService';
-import type { CandidateProfile, Scenario, Scorecard } from '../types';
+import type { CandidateProfile, DemoRepStyle, Scenario, Scorecard } from '../types';
 
 export type CallPhase = 'idle' | 'connecting' | 'live' | 'analyzing' | 'done' | 'error';
 
@@ -90,10 +90,10 @@ export function useVoiceCall(onScorecard: (sc: Scorecard) => void) {
     }
   };
 
-  // demo = true: an AI trainee rep (second Voice Agent) takes the call instead of the microphone.
-  async function start(scenario: Scenario, profile: CandidateProfile, demoCall = false) {
+  // demoCall set: an AI rep (second Voice Agent) takes the call instead of the microphone.
+  async function start(scenario: Scenario, profile: CandidateProfile, demoCall: DemoRepStyle | null = null) {
     setPhase('connecting');
-    setDemo(demoCall);
+    setDemo(Boolean(demoCall));
     setLines([]);
     setInterim('');
     setElapsed(0);

@@ -2,6 +2,7 @@
 import React from 'react';
 import { AlertTriangle, Award, Bot, Headphones, Loader2, Phone, PhoneOff } from 'lucide-react';
 import type { CallPhase } from '../hooks/useVoiceCall';
+import type { DemoRepStyle } from '../types';
 
 interface CandidateControlsProps {
   phase: CallPhase;
@@ -15,9 +16,11 @@ interface CandidateControlsProps {
   demo: boolean;
   onStart: () => void;
   onEnd: () => void;
-  onDemo: () => void;
+  onDemo: (style: DemoRepStyle) => void;
   onViewScorecard: () => void;
 }
+
+const DEMO_REPS: [DemoRepStyle, string][] = [['strong', 'Strong candidate'], ['trainee', 'New hire']];
 
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
@@ -47,13 +50,19 @@ export const CandidateControls: React.FC<CandidateControlsProps> = props => {
         )}
 
         {!inCall && (
-          <button
-            onClick={props.onDemo}
-            disabled={phase === 'analyzing'}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 text-slate-800 text-xs font-semibold cursor-pointer"
-          >
-            <Bot className="w-4 h-4 text-violet-600" /> Watch AI demo call
-          </button>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Bot className="w-4 h-4 text-violet-600" /> AI demo call:
+            {DEMO_REPS.map(([style, label]) => (
+              <button
+                key={style}
+                onClick={() => props.onDemo(style)}
+                disabled={phase === 'analyzing'}
+                className="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 text-slate-800 font-semibold cursor-pointer"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         )}
 
         {phase === 'connecting' && <span className="text-xs text-slate-500 flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" />Connecting to the customer...</span>}
@@ -78,7 +87,7 @@ export const CandidateControls: React.FC<CandidateControlsProps> = props => {
 
       {demo && inCall && (
         <p className="flex items-center gap-2 text-xs text-violet-800 bg-violet-50 border border-violet-200 p-2.5 rounded-lg">
-          <Bot className="w-4 h-4 shrink-0" /> Demo call: both sides are AssemblyAI Voice Agents. An AI trainee rep is handling the AI customer, and it gets scored exactly like a human candidate.
+          <Bot className="w-4 h-4 shrink-0" /> Demo call: both sides are AssemblyAI Voice Agents. An AI rep is handling the AI customer, and it gets scored exactly like a human candidate.
         </p>
       )}
 

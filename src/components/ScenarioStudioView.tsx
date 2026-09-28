@@ -1,8 +1,9 @@
-// Scenario library: browse built-in customer personas, create custom ones, and launch a roleplay.
+// Scenario library: client playbooks as call-type × level grids, plus built-in and hand-written personas, each launchable as a roleplay.
 import React, { useState } from 'react';
 import { BookOpen, Play, Plus } from 'lucide-react';
 import type { Scenario } from '../types';
 import { ScenarioForm } from './ScenarioForm';
+import { PlaybookMatrix } from './studio/PlaybookMatrix';
 import { ScriptImport } from './studio/ScriptImport';
 
 interface ScenarioStudioViewProps {
@@ -15,6 +16,9 @@ interface ScenarioStudioViewProps {
 
 export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenarios, activeScenarioId, onSelectScenario, onStartRoleplay, onAddScenarios }) => {
   const [creating, setCreating] = useState(false);
+  const fromPlaybooks = scenarios.filter(s => s.playbook && s.level);
+  const playbooks = [...new Set(fromPlaybooks.map(s => s.playbook!))];
+  const others = scenarios.filter(s => !(s.playbook && s.level));
 
   return (
     <div className="space-y-4">
@@ -24,7 +28,7 @@ export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenario
             <BookOpen className="w-4 h-4 text-blue-600" />
             <h2 className="text-sm font-bold text-slate-900">Scenario Studio</h2>
           </div>
-          <p className="text-xs text-slate-500">Each scenario becomes the persona, opening line and voice of the AssemblyAI Voice Agent customer.</p>
+          <p className="text-xs text-slate-500">Upload a client playbook to build its call types and levels. Each scenario becomes the persona, opening line and voice of the AssemblyAI Voice Agent customer.</p>
         </div>
         <button onClick={() => setCreating(c => !c)} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-semibold cursor-pointer">
           <Plus className="w-3.5 h-3.5" /> Write a scenario by hand
@@ -43,8 +47,13 @@ export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenario
         />
       )}
 
+      {playbooks.map(p => (
+        <PlaybookMatrix key={p} playbook={p} scenarios={fromPlaybooks.filter(s => s.playbook === p)} activeScenarioId={activeScenarioId} onStartRoleplay={onStartRoleplay} />
+      ))}
+
+      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-2">Built-in and hand-written scenarios</h3>
       <div className="grid gap-3 md:grid-cols-2">
-        {scenarios.map(sc => (
+        {others.map(sc => (
           <div key={sc.id} className={`bg-white border rounded-xl p-4 shadow-2xs flex flex-col gap-3 ${sc.id === activeScenarioId ? 'border-blue-400 ring-1 ring-blue-200' : 'border-slate-200'}`}>
             <div className="flex gap-1.5 text-[10px] font-semibold">
               <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700">{sc.category}</span>

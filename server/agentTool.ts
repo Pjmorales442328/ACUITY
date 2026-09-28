@@ -23,6 +23,9 @@ export function callAgentTool<T>(apiKey: string, systemPrompt: string, tool: { n
       const m = JSON.parse(raw.toString());
       if (m.type === 'session.ready') {
         ws.send(JSON.stringify({ type: 'reply.create', instructions: `Call ${tool.name} now with your complete answer. Do not speak.` }));
+      } else if (m.type === 'reply.done') {
+        // A reply that ends without the tool call means the model dropped it (usually an over-long answer).
+        finish(() => reject(new Error(`${tool.name} returned no result`)));
       } else if (m.type === 'tool.call' && m.name === tool.name) {
         finish(() => resolve(m.arguments as T));
       } else if (m.type === 'session.error' || m.type === 'error') {

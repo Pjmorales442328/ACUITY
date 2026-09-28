@@ -29,21 +29,27 @@ export interface Scenario {
   critical?: number[]; // 1-based script steps that fail the call when missed (verification, legal disclosures)
   policies?: string[]; // facts from the script the rep must state correctly (timeframes, fees, limits)
   level?: PracticeLevel; // set on scenarios generated from an uploaded script
-  playbook?: string; // name of the script those levels came from
+  playbook?: string; // name of the playbook those levels came from
 }
 
 // 1 = cooperative caller (practice), 2 = frustrated with objections (hiring bar), 3 = hostile, pushes policy (certification bar)
 export type PracticeLevel = 1 | 2 | 3;
 
-// What the script analyzer extracted from an uploaded call script, shown for review before the levels are saved.
-export interface Playbook {
+// One call type from an analyzed playbook (e.g. "Lost or stolen card"), shown for review before its levels are saved.
+export interface CallType {
   name: string;
-  role: string;
   script: string[];
   critical: { step: number; reason: string }[];
   policies: string[];
   objections: { customerSays: string; repShould: string }[];
   levels: Scenario[];
+}
+
+// What the analyzer extracted from an uploaded client playbook: one entry per call type it covers.
+export interface Playbook {
+  name: string;
+  role: string;
+  callTypes: CallType[];
 }
 
 export interface BarResult {
@@ -116,5 +122,8 @@ export interface Scorecard extends CandidateProfile {
   metrics: SpeechMetrics;
   transcript: TranscriptLine[];
 }
+
+// Demo calls: which AI rep takes the call instead of the microphone.
+export type DemoRepStyle = 'strong' | 'trainee';
 
 export type ActiveTab = 'SCREENING' | 'CANDIDATES' | 'SCENARIOS' | 'ARCHITECTURE_DECK';

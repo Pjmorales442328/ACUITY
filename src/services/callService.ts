@@ -1,10 +1,10 @@
 // WebSocket client for the /ws/call gateway: sends mic audio and control messages, receives agent audio and events.
-import type { CandidateProfile, Scenario } from '../types';
+import type { CandidateProfile, DemoRepStyle, Scenario } from '../types';
 
 export type ServerEvent = { type: string; [key: string]: any };
 
 export interface CallSocket {
-  start: (scenario: Scenario, profile: CandidateProfile, demo: boolean) => void;
+  start: (scenario: Scenario, profile: CandidateProfile, demo: DemoRepStyle | null) => void;
   sendAudio: (pcm: ArrayBuffer) => void;
   end: () => void;
   close: () => void;
@@ -33,7 +33,7 @@ export function openCallSocket(handlers: {
 
   const sendJson = (msg: object) => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify(msg));
   return {
-    start: (scenario, profile, demo) => sendJson({ type: 'start', scenario, profile, demo }),
+    start: (scenario, profile, demo) => sendJson({ type: 'start', scenario, profile, demo: demo ?? false }),
     sendAudio: pcm => ws.readyState === WebSocket.OPEN && ws.send(pcm),
     end: () => sendJson({ type: 'end' }),
     close: () => ws.close()

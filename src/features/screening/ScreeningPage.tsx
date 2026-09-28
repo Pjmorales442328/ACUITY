@@ -8,11 +8,12 @@ import { CandidateProfileCard } from '../../components/CandidateProfileCard';
 import { GuideModal } from '../../components/GuideModal';
 import { TranscriptFeed } from '../../components/TranscriptFeed';
 import { useVoiceCall } from '../../hooks/useVoiceCall';
-import type { Scenario, Scorecard } from '../../types';
+import type { DemoRepStyle, Scenario, Scorecard } from '../../types';
 import { ScenarioContextCard } from './ScenarioContextCard';
 
 const MAX_SECONDS = 180;
-const DEMO_REP = 'Sam (AI trainee rep)'; // used when no candidate name is entered
+// Demo rep names, used when no candidate name is entered.
+const DEMO_REP: Record<DemoRepStyle, string> = { strong: 'Maria (AI strong candidate)', trainee: 'Sam (AI new hire)' };
 
 interface ScreeningPageProps {
   scenarios: Scenario[];
@@ -31,10 +32,10 @@ export const ScreeningPage: React.FC<ScreeningPageProps> = props => {
   const [candidateEmail, setCandidateEmail] = useState('');
   const [targetRole, setTargetRole] = useState('Customer Service Representative');
   const [guideOpen, setGuideOpen] = useState(false);
+  const [demoName, setDemoName] = useState(DEMO_REP.trainee);
   const call = useVoiceCall(props.onScorecard);
 
   const scenario = scenarios.find(s => s.id === selectedScenarioId) || scenarios[0];
-  const demoName = candidateName.trim() || DEMO_REP;
   const inCall = call.phase === 'connecting' || call.phase === 'live';
   const status =
     call.phase === 'live'
@@ -78,7 +79,11 @@ export const ScreeningPage: React.FC<ScreeningPageProps> = props => {
             fillers={call.fillers} notice={call.notice} error={call.error} demo={call.demo}
             hasScorecard={Boolean(latestScorecard)}
             onStart={() => setBriefOpen(true)} onEnd={call.end}
-            onDemo={() => call.start(scenario, { candidateName: demoName, candidateEmail, targetRole }, true)} onViewScorecard={props.onViewScorecard}
+            onDemo={style => {
+              const name = candidateName.trim() || DEMO_REP[style];
+              setDemoName(name);
+              call.start(scenario, { candidateName: name, candidateEmail, targetRole }, style);
+            }} onViewScorecard={props.onViewScorecard}
           />
         </div>
         <div className="lg:col-span-5">
