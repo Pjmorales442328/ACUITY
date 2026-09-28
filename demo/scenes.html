@@ -47,51 +47,64 @@
   .doc { font: 400 30px/1.5 'IBM Plex Mono', monospace; background: #fff; border: 2px solid var(--rule); padding: 34px 40px; width: 900px; box-shadow: 0 16px 40px rgba(22,20,15,.08); }
   .doc mark { background: #FDE2D4; color: var(--ink); padding: 0 4px; }
   .fine { position: absolute; right: 60px; bottom: 26px; font: 400 20px 'IBM Plex Mono', monospace; color: rgba(243,238,228,.8); background: rgba(22,20,15,.6); padding: 6px 12px; }
+  .chain { display: flex; align-items: stretch; gap: 0; margin-top: 80px; }
+  .chain div { flex: 1; border-top: 6px solid var(--ink); padding: 26px 26px 0 0; position: relative; }
+  .chain div + div { margin-left: 64px; }
+  .chain div + div::before { content: '→'; position: absolute; left: -52px; top: 14px; font: 600 38px 'Fraunces', serif; color: var(--muted); }
+  .chain b { display: block; font: 600 44px 'Fraunces', serif; margin: 10px 0 12px; }
+  .chain p { font-size: 27px; line-height: 1.45; color: var(--muted); }
+  .chain .by { font: 500 21px 'IBM Plex Mono', monospace; color: var(--signal); letter-spacing: .04em; }
 </style>
 </head>
 <body>
-<section id="cold" class="dark">
-  <p class="label" style="color:#A59C8C">00:01 · Level 3 caller · ApexPay dispute line</p>
-  <p class="serif" style="font-size:84px;line-height:1.18;font-weight:500;margin-top:70px;max-width:1600px">"I am <span class="signal">not</span> giving you my personal information. This is a <span class="signal">scam</span> if you ask!"</p>
-  <img src="waveform.svg" style="position:absolute;left:150px;bottom:110px;width:1620px;height:210px;opacity:.9" alt="">
-</section>
-
-<section id="hook">
-  <p class="label">The problem</p>
-  <h2 style="margin-top:40px">Every contact center has a script. You find out who follows it when a customer is <span class="signal">yelling.</span></h2>
-  <div style="display:flex;align-items:center;gap:70px;margin-top:80px">
-    <div class="doc">§2 Recording disclosure<br><mark>"Before we continue, this call is recorded for quality and training purposes."</mark></div>
-    <div class="note">Verbatim. Every call.</div>
+<section id="title" class="dark">
+  <div style="margin:auto 0">
+    <p class="label" style="color:#A59C8C">AcuityVoice · built on AssemblyAI</p>
+    <h1 style="margin-top:40px">Hire and certify call-center agents <span class="signal">on the client's playbook.</span></h1>
+    <p class="lead" style="margin-top:50px;color:#A59C8C">Upload the playbook. Get live voice callers, levels and a pass bar.</p>
   </div>
 </section>
 
-<section id="what">
-  <p class="label">AcuityVoice</p>
-  <h2 style="margin-top:40px">Upload your script. Get a caller <span class="signal">and</span> a bar.</h2>
+<section id="context">
+  <p class="label">How outsourced customer support works</p>
+  <h2 style="margin-top:40px">A bank hands its phone lines to a call center, <span class="signal">with a playbook.</span></h2>
+  <div class="chain">
+    <div><span class="by">THE CLIENT</span><b>Playbook</b><p>ApexPay: call types, required disclosures, verification, policies.</p></div>
+    <div><span class="by">THE CALL CENTER</span><b>Hire</b><p>Hundreds of agents a year for one client line.</p></div>
+    <div><span class="by">TRAINING</span><b>Certify</b><p>Each agent must follow the playbook before going live.</p></div>
+    <div><span class="by">LIVE</span><b>Real customers</b><p>Every miss is the client's compliance risk.</p></div>
+  </div>
+</section>
+
+<section id="problem">
+  <p class="label">The gap</p>
+  <h2 style="margin-top:40px">Nobody tests the playbook <span class="signal">until a real customer does.</span></h2>
   <div class="lines" style="margin-top:70px">
-    <p><span>01</span>Reads the script file your reps already use: .docx, .pdf, .txt.</p>
-    <p><span>02</span>Finds the critical steps, the policies and the objections.</p>
-    <p><span>03</span>Builds three live callers, from practice to certification.</p>
+    <p><span>HIRING</span>Interviews check English and attitude, not the client's call flow.</p>
+    <p><span>CERTIFY</span>A trainer, a mock call and a gut feeling. It doesn't scale.</p>
+    <p><span>RISK</span>A skipped disclosure on a live call fails the client's audit.</p>
   </div>
 </section>
 
-<section id="levels">
-  <p class="label">Three callers from one script</p>
-  <h2 style="margin-top:30px;font-size:76px">Pass or fail is decided in code.</h2>
-  <div class="cols">
-    <div><span class="lv">Level 1 · Practice</span><b>Cooperative</b><p class="who">Sticks to the main call flow</p><ul><li>No bar</li><li>Report shows every missed step</li></ul></div>
-    <div style="border-color:#9A6A00"><span class="lv" style="color:#9A6A00">Level 2 · Hiring bar</span><b>Frustrated</b><p class="who">Raises the script's objections</p><ul><li>Every critical step done</li><li>70%+ of the script</li><li>Ready, or Ready with coaching</li></ul></div>
-    <div style="border-color:var(--signal)"><span class="lv signal">Level 3 · Certification bar</span><b>Hostile</b><p class="who">Fights verification, demands what policy forbids</p><ul><li>Every critical step done</li><li>90%+ of the script</li><li>Ready</li></ul></div>
+<section id="solution">
+  <p class="label">AcuityVoice · the workflow</p>
+  <h2 style="margin-top:40px">From the client's document to a pass or fail, <span class="signal">in minutes.</span></h2>
+  <div class="chain">
+    <div><span class="by">01 · UPLOAD</span><b>Playbook</b><p>The .docx or .pdf the client sent.</p></div>
+    <div><span class="by">02 · ANALYZE</span><b>Call types</b><p>Flow, critical steps, policies, objections.</p></div>
+    <div><span class="by">03 · BUILD</span><b>3 levels each</b><p>Practice, hiring bar, certification bar.</p></div>
+    <div><span class="by">04 · CALL</span><b>Live voice</b><p>The candidate talks to a real-time AI caller.</p></div>
+    <div><span class="by">05 · DECIDE</span><b>Pass or fail</b><p>Every step tied to their exact words.</p></div>
   </div>
 </section>
 
-<section id="call">
-  <p class="label">Level 3, recorded</p>
-  <h2 style="margin-top:40px">The certification call.</h2>
+<section id="candidate">
+  <p class="label">Hiring screen · ApexPay line</p>
+  <h2 style="margin-top:40px">Candidate: Maria Santos.</h2>
   <dl class="facts">
-    <dt>Rep</dt><dd>Sam Rivera, trainee, card support</dd>
-    <dt>Script</dt><dd>ApexPay disputes: 9 steps, 2 critical</dd>
-    <dt>Caller</dt><dd>Casey, hostile, hasn't seen the script</dd>
+    <dt>Scenario</dt><dd>Unrecognized transaction · Level 2</dd>
+    <dt>Bar</dt><dd>Hiring bar: every critical step, 70%+ of the flow</dd>
+    <dt>Caller</dt><dd>Marcus, furious about a $200 charge he never made</dd>
   </dl>
 </section>
 
@@ -99,7 +112,7 @@
   <p class="label">Under the hood · one AssemblyAI key</p>
   <h2 style="margin-top:40px">Read, call, measure, decide.</h2>
   <div class="flow">
-    <div><span class="by">VOICE AGENT API</span><b>Read</b><p>The script file becomes a playbook through one JSON-Schema tool call.</p></div>
+    <div><span class="by">VOICE AGENT API</span><b>Read</b><p>The playbook becomes call types and callers through JSON-Schema tool calls.</p></div>
     <div><span class="by">VOICE AGENT API</span><b>Call</b><p>The customer, live, with a temperament set by the level.</p></div>
     <div><span class="by">UNIVERSAL-3.5 PRO</span><b>Measure</b><p>Every um and uh, with word timings: pace, fillers, pauses.</p></div>
     <div><span class="by">OUR CODE</span><b>Decide</b><p>Quotes must match the transcript. Bars are computed, never generated.</p></div>
@@ -107,11 +120,12 @@
 </section>
 
 <section id="value">
-  <p class="label">For contact-center hiring and training teams</p>
-  <h2 style="margin-top:40px">Hire against a bar. Certify with <span class="signal">evidence.</span></h2>
-  <div class="cols" style="grid-template-columns:1fr 1fr">
-    <div><span class="lv">Hiring</span><b>One-minute review</b><ul><li>Same script and caller for every candidate</li><li>Every score tied to their exact words</li></ul></div>
-    <div><span class="lv">Training</span><b>Ready to leave nesting</b><ul><li>Practice first, certify at Level 3</li><li>A person always makes the final call</li></ul></div>
+  <p class="label">For call centers and their clients</p>
+  <h2 style="margin-top:40px">Hire against the playbook. Certify with <span class="signal">evidence.</span></h2>
+  <div class="cols">
+    <div><span class="lv">Recruiting</span><b>Faster screens</b><ul><li>Same caller and bar for every applicant</li><li>One-minute review per candidate</li></ul></div>
+    <div><span class="lv">Training</span><b>Consistent certs</b><ul><li>Practice, then certify at Level 3</li><li>No more gut-feel mock calls</li></ul></div>
+    <div><span class="lv signal">The client</span><b>Proof</b><ul><li>Every agent passed their playbook</li><li>Quotes and timestamps for audits</li></ul></div>
   </div>
 </section>
 
@@ -123,24 +137,40 @@
   </div>
 </section>
 
-<section id="l3_studio" style="background:none">
-  <div class="l3"><b>Scenario Studio · a real upload</b><span>ApexPay_Dispute_Script.docx → playbook in about 6 seconds</span></div>
+<section id="l3_upload" style="background:none">
+  <div class="l3"><b>A real client playbook, uploaded</b><span>ApexPay_Program_Playbook.docx → 3 call types in about 15 seconds</span></div>
+</section>
+
+<section id="l3_levels" style="background:none">
+  <div class="l3"><b>3 call types × 3 levels = 9 scenarios</b><span>Practice · Hiring bar · Certification bar</span></div>
 </section>
 
 <section id="l3_call" style="background:none">
-  <div class="l3"><b>Level 3 · Certification bar</b><span>Customer: AssemblyAI Voice Agent · Rep: Sam Rivera</span></div>
+  <div class="l3"><b>Level 2 · Hiring bar · live call</b><span>Customer: AssemblyAI Voice Agent · Candidate: Maria Santos</span></div>
 </section>
 
 <section id="l3_fine" style="background:none">
-  <div class="fine">Rep voice simulated for this recording</div>
+  <div class="fine">Candidate voice simulated for this recording</div>
 </section>
 
 <section id="l3_report" style="background:none">
   <div class="l3"><b>The report, seconds after hang-up</b><span>Bar computed in code · every quote checked against the transcript</span></div>
 </section>
 
+<section id="l3_compare" style="background:none">
+  <div class="l3"><b>Same caller, two candidates</b><span>One bar, applied the same way to everyone</span></div>
+</section>
+
+<section id="l3_policy" style="background:none">
+  <div class="l3"><b>1:28 · Holds the line on policy</b><span>No instant refund: provisional credit in 10 business days</span></div>
+</section>
+
+<section id="l3_closing" style="background:none">
+  <div class="l3"><b>2:24 · Recap, reference number, close</b><span>Every step of the call flow, in order</span></div>
+</section>
+
 <script>
-  const id = new URLSearchParams(location.search).get('s') || 'cold';
+  const id = new URLSearchParams(location.search).get('s') || 'title';
   document.getElementById(id).classList.add('on');
   if (id.startsWith('l3_')) document.documentElement.classList.add('transparent');
 </script>
