@@ -1,5 +1,5 @@
 // Upload a client playbook or call script (.docx, .pdf, .txt, .md), analyze it, and hand the reviewed levels back to the studio.
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FileUp, Loader2 } from 'lucide-react';
 import { analyzeScriptFile } from '../../services/scriptService';
 import type { Playbook, Scenario } from '../../types';
@@ -7,7 +7,8 @@ import { PlaybookReview } from './PlaybookReview';
 
 const SAMPLE_URL = '/samples/ApexPay_Program_Playbook.docx';
 
-export const ScriptImport: React.FC<{ onCreate: (levels: Scenario[]) => void }> = ({ onCreate }) => {
+// autoSample: analyze the sample right away (the landing page's "Try the sample playbook" button).
+export const ScriptImport: React.FC<{ onCreate: (levels: Scenario[]) => void; autoSample?: boolean; onAutoSampleStarted?: () => void }> = ({ onCreate, autoSample, onAutoSampleStarted }) => {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,14 @@ export const ScriptImport: React.FC<{ onCreate: (levels: Scenario[]) => void }> 
       setError(err?.message || 'Could not load the sample playbook');
     }
   }
+
+  const autoStarted = useRef(false); // StrictMode runs effects twice in dev; analyze once
+  useEffect(() => {
+    if (!autoSample || autoStarted.current) return;
+    autoStarted.current = true;
+    onAutoSampleStarted?.();
+    useSample();
+  }, [autoSample]);
 
   if (playbook) return <PlaybookReview playbook={playbook} onDiscard={() => setPlaybook(null)} onCreate={levels => { onCreate(levels); setPlaybook(null); }} />;
 

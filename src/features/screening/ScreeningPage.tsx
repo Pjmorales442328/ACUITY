@@ -71,7 +71,7 @@ export const ScreeningPage: React.FC<ScreeningPageProps> = props => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-7 flex flex-col gap-4">
+        <div id="call-panel" className="lg:col-span-7 flex flex-col gap-4">
           <TranscriptFeed lines={call.lines} interim={call.interim} candidateName={call.demo ? demoName : candidateName} customerName={scenario.customerName} />
           <CandidateControls
             phase={call.phase} elapsed={call.elapsed} maxSeconds={MAX_SECONDS}

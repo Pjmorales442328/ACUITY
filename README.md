@@ -1,8 +1,21 @@
 # AcuityVoice
 
-Voice roleplay screening for contact-center hiring, built entirely on AssemblyAI.
+**Hear the call before you make the hire.** Hire and certify call-center agents against the client's own playbook, built entirely on AssemblyAI.
 
-A candidate takes a live phone call with an upset customer played by the **AssemblyAI Voice Agent API**. When the call ends, their recorded speech is transcribed with **Universal-3.5 Pro**, which keeps filler words and word timings. A second **Voice Agent evaluator** then scores the call through a JSON-Schema tool call. The result is a readiness report in which every finding quotes the candidate's exact words, and each quote is verified against the transcript.
+**Live app:** _[app URL]_ · **Demo video (3:55):** _[video link]_
+
+## The problem
+
+When a bank outsources its customer calls, it hands the call center (a BPO) a playbook: greet like this, read this disclosure word for word, verify every caller, never promise an instant refund. The BPO then has to hire and certify hundreds of agents to follow it. Today that means a trainer, one mock call and a gut feeling. Interviews check English and attitude, not the client's call flow, so the first real test is a live customer. And a skipped disclosure there is a compliance failure for the client.
+
+## What AcuityVoice does
+
+1. **Upload the client's playbook** (.docx/.pdf). In about 15 seconds it finds every call type (the sample has disputes, lost cards and late fees), with each one's call flow, auto-fail steps, policies and objections.
+2. **Get call types × 3 levels**: practice, the **hiring bar** (a frustrated caller) and the **certification bar** (a hostile one).
+3. **Put a candidate on a live voice call.** The AssemblyAI Voice Agent plays the customer, in character and in real time.
+4. **Get a pass/fail verdict with evidence.** Every playbook step is marked done or missed, backed by the candidate's exact words and a timestamp. The verdict is computed in code, never guessed by a model.
+
+On the same Level 2 caller, the demo's strong candidate passes the hiring bar with 100% of the call flow. The new hire fails for promising "you'll see the credit by this Friday", which the playbook forbids, and the report quotes that line.
 
 ## How it works
 
@@ -23,6 +36,19 @@ The reviewer checks each call type in its own tab, can change which steps are cr
 
 Readiness is reported as *Ready*, *Ready with coaching* or *Needs training*. It is a signal to support human review, not an automated hiring decision.
 
+## What we verified about the AssemblyAI Voice Agent API
+
+We tested all of these live while building. They shaped the design:
+
+- **A tool call that's too big gets dropped silently.** The session sends `reply.done` with no `tool.call`. So playbook analysis is split into one small call for call types, then one parallel call per call type for its callers, and `agentTool.ts` fails immediately instead of waiting for a call that will never come.
+- **A voice agent that has tools can go silent mid-call.** The customer agent gets no tools. Scoring runs in a separate, silent evaluator session, where one `reply.create` triggers exactly one tool call.
+- **Two agents on one line need pacing.** Unpaced bursts of audio break turn detection. Demo mode streams audio in real time with silence padding and one shared floor, which cut cross-talk from 3.5 s to 0 s per 75-second call.
+- **Emotion comes from the words.** The TTS reads `[angry]` tags and SSML aloud, so the customer prompt writes the anger into short bursts, `!` and CAPS. vera, jean and jane sound angriest.
+- **Leave `turn_detection` at its defaults.** Setting `min_silence` turns off adaptive pacing. To keep candidates who pause from being cut off, set `input.transcription_mode` to `max_accuracy` instead.
+- **Keep the fillers.** Universal-3.5 Pro with `disfluencies: true` keeps um and uh and gives word timings, so pace, fillers and pauses are measured, not estimated. Playbook keyterms feed both the live agent and the transcription.
+
+Quality gates: `npm test` runs 27 assertions on speech metrics, quote matching, the pass/fail bars and N/A handling for conditional steps. `npm run lint` type-checks both client and server.
+
 ## Run it
 
 ```bash
@@ -31,7 +57,7 @@ cp .env.example .env     # set ASSEMBLYAI_API_KEY
 npm run dev              # http://localhost:3000
 ```
 
-Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 3 minutes, and at `MAX_LIVE_CALLS` (default 3) at once, to protect API credits. A fresh install shows one sample report (`server/sampleCandidates.json`) until the first real call is saved.
+Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 3 minutes, and at `MAX_LIVE_CALLS` (default 3) at once, to protect API credits. A fresh install shows two sample reports (`server/sampleCandidates.json`), a pass and a fail on the same caller, until the first real call is saved.
 
 | Command | What it does |
 |---|---|
@@ -67,6 +93,7 @@ server/
   store.ts                 Saves scorecards and custom scenarios to data/*.json
 src/
   App.tsx                  Tabs, scenario library, candidate history, scorecard modal
+  components/StartHere.tsx First-visit guide: playbook -> call -> verdict
   features/screening/      Live screening page
   components/              UI (scorecard/ holds the report components)
   hooks/useVoiceCall.ts    Live call state

@@ -4,6 +4,7 @@ import { ArchitectureDeckView } from './components/ArchitectureDeckView';
 import { CandidateHistoryView } from './components/CandidateHistoryView';
 import { Header } from './components/Header';
 import { ScenarioStudioView } from './components/ScenarioStudioView';
+import { StartHere } from './components/StartHere';
 import { ScorecardModal } from './components/scorecard/ScorecardModal';
 import { DEFAULT_SCENARIOS } from './data/scenarios';
 import { ScreeningPage } from './features/screening/ScreeningPage';
@@ -19,6 +20,7 @@ export function App() {
   const [latest, setLatest] = useState<Scorecard | null>(null);
   const [openScorecard, setOpenScorecard] = useState<Scorecard | null>(null);
   const [briefOpen, setBriefOpen] = useState(false);
+  const [autoSample, setAutoSample] = useState(false);
 
   useEffect(() => {
     fetchCandidates().then(setCandidates).catch(err => console.error(err));
@@ -44,6 +46,11 @@ export function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
         {/* Kept mounted (hidden) so switching tabs never drops a live call. */}
         <div hidden={activeTab !== 'SCREENING'}>
+          <StartHere
+            onUpload={() => { setAutoSample(true); setActiveTab('SCENARIOS'); window.scrollTo(0, 0); }}
+            onReports={() => setActiveTab('CANDIDATES')}
+            reportCount={candidates.length}
+          />
           <ScreeningPage
             scenarios={scenarios}
             selectedScenarioId={selectedScenarioId}
@@ -73,6 +80,8 @@ export function App() {
               setActiveTab('SCREENING');
               setBriefOpen(true);
             }}
+            autoSample={autoSample}
+            onAutoSampleStarted={() => setAutoSample(false)}
             onAddScenarios={async list => {
               try {
                 // The store prepends, so save in reverse to keep level 1 first after a reload.

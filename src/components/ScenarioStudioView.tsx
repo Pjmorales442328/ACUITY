@@ -12,9 +12,11 @@ interface ScenarioStudioViewProps {
   onSelectScenario: (scenarioId: string) => void;
   onStartRoleplay: (scenarioId: string) => void;
   onAddScenarios: (list: Scenario[]) => void;
+  autoSample?: boolean;
+  onAutoSampleStarted?: () => void;
 }
 
-export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenarios, activeScenarioId, onSelectScenario, onStartRoleplay, onAddScenarios }) => {
+export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenarios, activeScenarioId, onSelectScenario, onStartRoleplay, onAddScenarios, autoSample, onAutoSampleStarted }) => {
   const [creating, setCreating] = useState(false);
   const fromPlaybooks = scenarios.filter(s => s.playbook && s.level);
   const playbooks = [...new Set(fromPlaybooks.map(s => s.playbook!))];
@@ -35,7 +37,7 @@ export const ScenarioStudioView: React.FC<ScenarioStudioViewProps> = ({ scenario
         </button>
       </div>
 
-      <ScriptImport onCreate={onAddScenarios} />
+      <ScriptImport onCreate={onAddScenarios} autoSample={autoSample} onAutoSampleStarted={onAutoSampleStarted} />
 
       {creating && (
         <ScenarioForm
