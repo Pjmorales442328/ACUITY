@@ -11,7 +11,7 @@ import { useVoiceCall } from '../../hooks/useVoiceCall';
 import type { DemoRepStyle, Scenario, Scorecard } from '../../types';
 import { ScenarioContextCard } from './ScenarioContextCard';
 
-const MAX_SECONDS = 180;
+const MAX_SECONDS = 300;
 // Demo rep names, used when no candidate name is entered.
 const DEMO_REP: Record<DemoRepStyle, string> = { strong: 'Maria (AI strong candidate)', trainee: 'Sam (AI new hire)' };
 

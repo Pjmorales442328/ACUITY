@@ -4,7 +4,7 @@ import type { Word } from './speechMetrics';
 const API = 'https://api.assemblyai.com/v2';
 const SAMPLE_RATE = 24000;
 const POLL_MS = 1500;
-const TIMEOUT_MS = 120_000;
+const TIMEOUT_MS = 240_000; // 5-minute calls plus a slow queue can exceed 2 minutes
 
 function wavFromPcm16(pcm: Buffer): Buffer {
   const header = Buffer.alloc(44);

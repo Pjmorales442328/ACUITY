@@ -24,7 +24,7 @@ On the same Level 2 caller, the demo's strong candidate passes the hiring bar wi
 3. **Judge (Voice Agent API).** A short evaluator session receives the transcript and metrics. `reply.create` asks it to call `submit_assessment`, and the tool arguments become the scorecard: five rubric dimensions scored 1–5, a CEFR level, the customer outcome and findings.
 4. **Verify.** Findings are kept only if their quote appears word for word in the transcript. Readiness is calculated from the scores in code. If the candidate says fewer than 25 words, the result is "Not enough speech".
 
-**Your client's playbook.** A BPO receives a program playbook from each client. In Scenario Studio it uploads that document (`.docx`, `.pdf`, `.txt` or `.md`; a sample, `public/samples/ApexPay_Program_Playbook.docx`, covers three call types). One Voice Agent tool call (`submit_playbook`) splits it into call types, then one small call per call type (`submit_callers`, run in parallel) writes its callers. For every call type you get:
+**Your client's playbook.** A BPO receives a program playbook from each client. In Scenario Studio it uploads that document (`.docx`, `.pdf`, `.txt` or `.md`; two samples: `public/samples/ApexPay_Program_Playbook.docx` (card servicing: disputes, lost cards, late fees) and `public/samples/Link_TechSupport_Playbook.docx` (post-purchase PC tech support: no power, black screen, Wi-Fi; troubleshooting steps follow Dell's published no-power procedure; Link Computers is fictional)). One Voice Agent tool call (`submit_playbook`) splits it into call types, then one small call per call type (`submit_callers`, run in parallel) writes its callers. For every call type you get:
 - the call flow as checkable steps, with **critical** steps flagged (verification, legal disclosures: the auto-fail items on a QA form)
 - the policies the rep must state correctly (timeframes, fees), which the evaluator uses to score Accuracy
 - the objections callers of that type raise
@@ -57,7 +57,7 @@ cp .env.example .env     # set ASSEMBLYAI_API_KEY
 npm run dev              # http://localhost:3000
 ```
 
-Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 3 minutes, and at `MAX_LIVE_CALLS` (default 3) at once, to protect API credits. A fresh install shows two sample reports (`server/sampleCandidates.json`), a pass and a fail on the same caller, until the first real call is saved.
+Use headphones during calls so the customer's voice doesn't leak into the microphone. Calls are capped at 5 minutes, and at `MAX_LIVE_CALLS` (default 3) at once, to protect API credits. A fresh install shows two sample reports (`server/sampleCandidates.json`), a pass and a fail on the same caller, until the first real call is saved.
 
 | Command | What it does |
 |---|---|

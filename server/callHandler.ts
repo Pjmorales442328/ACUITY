@@ -9,7 +9,7 @@ import { DemoRep } from './demoRep';
 import { parseProfile, parseScenario } from './validate';
 
 // Hard cap per call to protect API credits.
-const MAX_CALL_MS = 180_000;
+const MAX_CALL_MS = 300_000; // troubleshooting call flows need 4+ minutes; 3 cut the close
 // Caps simultaneous calls so a public URL can't drain the free-tier key.
 const MAX_LIVE_CALLS = Number(process.env.MAX_LIVE_CALLS) || 3;
 let liveCalls = 0;

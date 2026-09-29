@@ -21,6 +21,7 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 - TTS has no emotion/style/speed control, and `[angry]` tags and SSML are read aloud (tested 2026-09-27). Emotion comes only from the text: short bursts, `!`/`?`, CAPS on stressed words. That's why `customerPrompt.ts` writes the anger into the words. Most expressive voices on angry text: vera, jean, alba, jane. Flattest: paul, michael, george.
 - Valid English voices: alba, eve, george, jane, jean, mary, michael, anna, charles, paul, vera. `james` and `ivy` do not exist.
 - Leave `turn_detection` at its default; setting `min_silence` disables adaptive pacing. Use `input.transcription_mode` instead.
+- Pre-recorded transcription of a 5-minute call can take over 2 minutes (seen on 2026-09-29), so `transcribe.ts` polls for up to 4 minutes.
 - Pre-recorded requests use `speech_models: ["universal-3-5-pro", "universal-2"]` with a raw-key `authorization` header.
 - The LLM Gateway is locked on the current (free) plan, and `qwen3.5-4b-32k-fast` does not support `response_format`. That is why scoring runs on a Voice Agent tool call.
 - Docs index: https://www.assemblyai.com/docs/llms.txt
@@ -32,4 +33,4 @@ Entry for the lablab.ai AssemblyAI Voice Agent Hackathon (deadline 2026-09-30). 
 - Script steps (`Scenario.script`) count as DONE or PARTIAL only with a verified quote; otherwise MISSED. Adherence is computed in code.
 - Findings must pass `locateQuote` (a verbatim match against the transcript) or they are discarded.
 - Mic audio is streamed continuously at 24 kHz. The echo gate sends zeros instead of dropping frames.
-- Public-deploy guards live in `server/callHandler.ts`: a 3-minute cap per call, plus `MAX_LIVE_CALLS` concurrent calls. `render.yaml` is the deploy blueprint.
+- Public-deploy guards live in `server/callHandler.ts`: a 5-minute cap per call (troubleshooting flows need more than 3), plus `MAX_LIVE_CALLS` concurrent calls. `render.yaml` is the deploy blueprint.

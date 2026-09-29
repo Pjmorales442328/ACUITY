@@ -29,7 +29,7 @@ export const GuideModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             </li>
           ))}
         </ol>
-        <p className="text-[11px] text-slate-500">Use headphones so the customer's voice doesn't leak into your microphone. Calls are capped at 3 minutes.</p>
+        <p className="text-[11px] text-slate-500">Use headphones so the customer's voice doesn't leak into your microphone. Calls are capped at 5 minutes.</p>
       </div>
     </div>
   );
