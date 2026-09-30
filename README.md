@@ -1,8 +1,10 @@
 # AcuityVoice
 
+![AcuityVoice: upload the client playbook, run a live AI voice call, get a pass/fail verdict with quotes](docs/cover.png)
+
 **Hear the call before you make the hire.** Hire and certify call-center agents against the client's own playbook, built entirely on AssemblyAI.
 
-**Live app:** https://acuityvoice.onrender.com · **Demo video (3:55):** _[video link]_
+**Live app:** https://acuityvoice.onrender.com · **Demo video (3:55):** on the lablab.ai submission page · MIT licensed
 
 ## The problem
 
