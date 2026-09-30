@@ -3,7 +3,7 @@ services:
   - type: web
     name: acuityvoice
     runtime: node
-    plan: free # free instances sleep after 15 idle minutes; use starter so judges never hit a cold start
+    plan: free # sleeps after 15 idle minutes; .github/workflows/keep-warm.yml keeps it awake
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/health

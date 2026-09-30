@@ -2,7 +2,7 @@
 
 **Hear the call before you make the hire.** Hire and certify call-center agents against the client's own playbook, built entirely on AssemblyAI.
 
-**Live app:** _[app URL]_ · **Demo video (3:55):** _[video link]_
+**Live app:** https://acuityvoice.onrender.com · **Demo video (3:55):** _[video link]_
 
 ## The problem
 
@@ -69,7 +69,7 @@ Use headphones during calls so the customer's voice doesn't leak into the microp
 
 ### Deploy
 
-The app needs a host that keeps WebSockets open (not serverless). `render.yaml` is a Render blueprint: New → Blueprint → pick the repo, then set `ASSEMBLYAI_API_KEY`. Free instances sleep after 15 idle minutes; switch to `starter` while judging. Saved reports live on local disk and reset on redeploy.
+The app needs a host that keeps WebSockets open (not serverless). `render.yaml` is a Render blueprint: New → Blueprint → pick the repo, then set `ASSEMBLYAI_API_KEY`. Free instances sleep after 15 idle minutes, so `.github/workflows/keep-warm.yml` pings `/api/health` every 10 minutes. Saved reports live on local disk and reset on redeploy.
 
 ## Folder structure
 

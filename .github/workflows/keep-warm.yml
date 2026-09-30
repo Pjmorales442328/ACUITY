@@ -1,0 +1,11 @@
+# Pings the free Render instance so it never spins down (free plans sleep after 15 idle minutes).
+name: keep-warm
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS --retry 3 --max-time 60 https://acuityvoice.onrender.com/api/health
